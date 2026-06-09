@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality On Point</title>
+<style>
+  :root {
+    --primary: #1a56db;
+    --primary-dark: #1e429f;
+    --success: #057a55;
+    --warning: #c27803;
+    --danger: #c81e1e;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); color: var(--gray-800); min-height: 100vh; }
+
+  /* Layout */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar { width: 240px; background: var(--gray-900); color: white; flex-shrink: 0; display: flex; flex-direction: column; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+  .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { background: white; border-bottom: 1px solid var(--gray-200); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .content { padding: 24px; flex: 1; }
+
+  /* Sidebar */
+  .sidebar-logo { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo h1 { font-size: 16px; font-weight: 700; color: white; letter-spacing: -0.3px; }
+  .sidebar-logo span { color: #60a5fa; }
+  .sidebar-logo p { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .sidebar-section { padding: 16px 0 8px; }
+  .sidebar-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-500); padding: 0 16px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 14px; color: var(--gray-400); cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+  .nav-item.active { background: rgba(26,86,219,0.2); color: #93c5fd; border-left-color: #60a5fa; }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-badge { margin-left: auto; background: var(--danger); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+
+  /* Cards */
+  .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--gray-800); }
+  .card-body { padding: 20px; }
+
+  /* Stat cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-900); margin: 4px 0; line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--gray-400); }
+  .stat-card.green .stat-value { color: var(--success); }
+  .stat-card.red .stat-value { color: var(--danger); }
+  .stat-card.yellow .stat-value { color: var(--warning); }
+  .stat-card.blue .stat-value { color: var(--primary); }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+  .btn-secondary:hover { background: var(--gray-200); }
+  .btn-success { background: #def7ec; color: var(--success); border: 1px solid #bcf0da; }
+  .btn-success:hover { background: #bcf0da; }
+  .btn-danger { background: #fde8e8; color: var(--danger); border: 1px solid #fbd5d5; }
+  .btn-danger:hover { background: #fbd5d5; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-lg { padding: 10px 20px; font-size: 14px; }
+
+  /* Forms */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--gray-600); }
+  input, select, textarea { border: 1px solid var(--gray-300); border-radius: 6px; padding: 8px 12px; font-size: 13px; color: var(--gray-800); background: white; transition: border 0.15s; width: 100%; font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+  tbody tr:hover { background: var(--gray-50); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-pass { background: #def7ec; color: var(--success); }
+  .badge-fail { background: #fde8e8; color: var(--danger); }
+  .badge-pending { background: #fdf6b2; color: var(--warning); }
+  .badge-inprogress { background: #e1effe; color: var(--primary); }
+  .badge-open { background: #fde8e8; color: var(--danger); }
+  .badge-closed { background: #def7ec; color: var(--success); }
+  .badge-draft { background: var(--gray-100); color: var(--gray-500); }
+  .badge-critical { background: #fde8e8; color: var(--danger); }
+  .badge-major { background: #fdf6b2; color: var(--warning); }
+  .badge-minor { background: #e1effe; color: var(--primary); }
+
+  /* Page headers */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
+  .page-title { font-size: 20px; font-weight: 700; color: var(--gray-900); }
+  .page-sub { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--gray-200); margin-bottom: 20px; }
+  .tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab:hover:not(.active) { color: var(--gray-700); }
+
+  /* Checklist */
+  .checklist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-label { flex: 1; font-size: 13px; color: var(--gray-700); }
+  .check-result { display: flex; gap: 8px; }
+  .check-btn { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--gray-200); background: white; transition: all 0.1s; }
+  .check-btn.pass.active { background: #def7ec; color: var(--success); border-color: #84e1bc; }
+  .check-btn.fail.active { background: #fde8e8; color: var(--danger); border-color: #fbd5d5; }
+  .check-btn.na.active { background: var(--gray-100); color: var(--gray-500); border-color: var(--gray-300); }
+
+  /* Photo upload */
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+  .photo-item { aspect-ratio: 1; border-radius: 6px; overflow: hidden; position: relative; background: var(--gray-100); }
+  .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-item .remove-photo { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+  .photo-item .photo-caption { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 10px; padding: 4px 6px; }
+  .photo-add { aspect-ratio: 1; border: 2px dashed var(--gray-300); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; gap: 6px; color: var(--gray-400); font-size: 12px; transition: all 0.15s; }
+  .photo-add:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal { background: white; border-radius: var(--radius); width: 100%; max-width: 760px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray-400); line-height: 1; }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 10px; }
+
+  /* Toasts */
+  #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast { padding: 12px 16px; border-radius: 8px; color: white; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-md); animation: slideIn 0.2s ease; min-width: 200px; }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  .toast.info { background: var(--primary); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Print */
+  @media print {
+    .sidebar, .topbar, .no-print { display: none !important; }
+    .main { margin-left: 0; }
+    .content { padding: 0; }
+    .card { box-shadow: none; border: 1px solid var(--gray-200); }
+    .report-print { display: block !important; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; }
+    .sidebar-logo h1, .sidebar-logo p, .nav-item span, .sidebar-section-label { display: none; }
+    .main { margin-left: 60px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Misc */
+  .divider { border: none; border-top: 1px solid var(--gray-200); margin: 20px 0; }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--gray-400); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px; }
+  .flex { display: flex; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .mb-4 { margin-bottom: 16px; }
+  .mt-4 { margin-top: 16px; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .text-gray { color: var(--gray-500); }
+  .font-semibold { font-weight: 600; }
+
+  /* Score meter */
+  .score-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+
+  /* NCR severity colors */
+  .severity-critical { color: var(--danger); }
+  .severity-major { color: var(--warning); }
+  .severity-minor { color: var(--primary); }
+
+  /* AQL table */
+  .aql-display { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px 16px; font-size: 13px; }
+  .aql-display strong { color: var(--primary); }
+
+  /* Report preview */
+  .report-section { margin-bottom: 28px; }
+  .report-section h3 { font-size: 14px; font-weight: 700; color: var(--gray-700); border-bottom: 2px solid var(--primary); padding-bottom: 6px; margin-bottom: 14px; }
+  .report-header-block { background: var(--gray-900); color: white; padding: 24px; border-radius: var(--radius); margin-bottom: 24px; }
+  .report-kv { display: grid; grid-template-columns: 140px 1fr; gap: 4px 16px; font-size: 13px; }
+  .report-kv dt { color: var(--gray-400); font-weight: 500; }
+  .report-kv dd { color: white; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>Quality <span>On Point</span></h1>
+    <p>Inspection Management</p>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Overview</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Inspections</div>
+    <div class="nav-item" onclick="navigate('incoming')">
+      <span class="nav-icon">📦</span><span>Incoming</span>
+    </div>
+    <div class="nav-item" onclick="navigate('inprocess')">
+      <span class="nav-icon">⚙️</span><span>In-Process</span>
+    </div>
+    <div class="nav-item" onclick="navigate('preshipment')">
+      <span class="nav-icon">🚚</span><span>Pre-Shipment</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Quality</div>
+    <div class="nav-item" onclick="navigate('ncr')">
+      <span class="nav-icon">⚠️</span><span>Non-Conformance</span>
+      <span class="nav-badge" id="ncr-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="navigate('capa')">
+      <span class="nav-icon">🔧</span><span>CAPA</span>
+    </div>
+    <div class="nav-item" onclick="navigate('suppliers')">
+      <span class="nav-icon">🏭</span><span>Suppliers</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Reports</div>
+    <div class="nav-item" onclick="navigate('reports')">
+      <span class="nav-icon">📄</span><span>Reports</span>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <span id="page-title" style="font-weight:600;font-size:15px;">Dashboard</span>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-secondary btn-sm" onclick="exportData()">⬇ Export Data</button>
+      <button class="btn btn-primary btn-sm" onclick="showNewInspectionMenu()">+ New Inspection</button>
+    </div>
+  </div>
+
+  <div class="content" id="page-content"></div>
+</div>
+
+</div>
+
+<!-- Modal container -->
+<div id="modal-container"></div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Hidden file input -->
+<input type="file" id="photo-input" accept="image/*" multiple style="display:none">
+
+<script>
+// ============================================================
+// DATA STORE
+// ============================================================
+const DB = {
+  get: (key, def=[]) => { try { return JSON.parse(localStorage.getItem('qop_'+key)) ?? def; } catch { return def; } },
+  set: (key, val) => localStorage.setItem('qop_'+key, JSON.stringify(val)),
+  id: () => Date.now().toString(36) + Math.random().toString(36).slice(2,6)
+};
+
+// Seed demo data if empty
+function seedData() {
+  if (DB.get('seeded', false)) return;
+  const now = Date.now();
+  const day = 86400000;
+
+  DB.set('suppliers', [
+    { id:'s1', name:'Acme Manufacturing', contact:'John Smith', email:'john@acme.com', phone:'555-0100', score:87, status:'approved' },
+    { id:'s2', name:'Pacific Components', contact:'Linda Wu', email:'linda@pacific.com', phone:'555-0200', score:72, status:'approved' },
+    { id:'s3', name:'Delta Materials', contact:'Carlos R.', email:'carlos@delta.com', phone:'555-0300', score:55, status:'conditional' },
+  ]);
+
+  DB.set('inspections', [
+    { id:'i1', type:'incoming', status:'pass', date: new Date(now-5*day).toISOString().slice(0,10), supplier:'Acme Manufacturing', poNumber:'PO-2024-001', partNumber:'PN-5520', description:'Aluminum brackets', qty:500, qtyInspected:32, defects:0, photos:[], notes:'All within spec.', checklist:[], createdAt: now-5*day },
+    { id:'i2', type:'incoming', status:'fail', date: new Date(now-3*day).toISOString().slice(0,10), supplier:'Delta Materials', poNumber:'PO-2024-002', partNumber:'PN-7701', description:'Steel washers', qty:2000, qtyInspected:50, defects:7, photos:[], notes:'Dimensional non-conformance on ID.', checklist:[], createdAt: now-3*day },
+    { id:'i3', type:'inprocess', status:'pass', date: new Date(now-2*day).toISOString().slice(0,10), workOrder:'WO-4401', process:'Assembly Line 3', partNumber:'PN-5520', description:'Bracket sub-assembly', qty:200, qtyInspected:20, defects:0, photos:[], notes:'', checklist:[], createdAt: now-2*day },
+    { id:'i4', type:'preshipment', status:'pending', date: new Date(now-1*day).toISOString().slice(0,10), customer:'Overture Air Quality', poNumber:'SO-8801', partNumber:'PN-5520', description:'Finished air quality sensors', qty:100, qtyInspected:0, defects:0, photos:[], notes:'', checklist:[], createdAt: now-day },
+  ]);
+
+  DB.set('ncrs', [
+    { id:'n1', number:'NCR-001', date: new Date(now-3*day).toISOString().slice(0,10), title:'Dimensional Non-Conformance - Steel Washers', inspectionId:'i2', severity:'major', status:'open', description:'ID measured at 12.3mm vs spec 12.0±0.1mm', disposition:'', assignedTo:'Quality Eng.', photos:[], createdAt: now-3*day },
+    { id:'n2', number:'NCR-002', date: new Date(now-10*day).toISOString().slice(0,10), title:'Surface Finish Defect - Brackets', inspectionId:'i1', severity:'minor', status:'closed', description:'Cosmetic scratches on 2 of 500 units', disposition:'Use as-is with customer concession', assignedTo:'Quality Eng.', photos:[], createdAt: now-10*day },
+  ]);
+
+  DB.set('capas', [
+    { id:'c1', number:'CAPA-001', ncrId:'n1', title:'Supplier Process Correction - Delta Materials', type:'corrective', status:'open', rootCause:'Worn tooling in supplier process', action:'Supplier to replace tooling and requalify process', dueDate: new Date(now+7*day).toISOString().slice(0,10), owner:'Supplier QA', createdAt: now-3*day },
+  ]);
+
+  DB.set('seeded', true);
+}
+
+seedData();
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const pages = { dashboard, incoming, inprocess, preshipment, ncr, capa, suppliers, reports };
+
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const items = document.querySelectorAll('.nav-item');
+  items.forEach(el => { if (el.getAttribute('onclick')?.includes(page)) el.classList.add('active'); });
+  document.getElementById('page-title').textContent = {
+    dashboard:'Dashboard', incoming:'Incoming Inspection', inprocess:'In-Process Inspection',
+    preshipment:'Pre-Shipment Inspection', ncr:'Non-Conformance Reports',
+    capa:'Corrective & Preventive Actions', suppliers:'Supplier Management', reports:'Reports'
+  }[page] || page;
+  document.getElementById('page-content').innerHTML = '';
+  pages[page]();
+  updateNCRBadge();
+}
+
+function updateNCRBadge() {
+  const open = DB.get('ncrs').filter(n => n.status === 'open').length;
+  const badge = document.getElementById('ncr-badge');
+  badge.textContent = open;
+  badge.style.display = open ? '' : 'none';
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function dashboard() {
+  const inspections = DB.get('inspections');
+  const ncrs = DB.get('ncrs');
+  const capas = DB.get('capas');
+  const suppliers = DB.get('suppliers');
+
+  const total = inspections.length;
+  const passed = inspections.filter(i => i.status === 'pass').length;
+  const failed = inspections.filter(i => i.status === 'fail').length;
+  const pending = inspections.filter(i => i.status === 'pending').length;
+  const openNCRs = ncrs.filter(n => n.status === 'open').length;
+  const openCAPAs = capas.filter(c => c.status === 'open').length;
+  const passRate = total ? Math.round(passed/total*100) : 0;
+
+  const recent = [...inspections].sort((a,b) => b.createdAt - a.createdAt).slice(0,5);
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-label">Total Inspections</div><div class="stat-value">${total}</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card green"><div class="stat-label">Pass Rate</div><div class="stat-value">${passRate}%</div><div class="stat-sub">${passed} passed</div></div>
+      <div class="stat-card red"><div class="stat-label">Open NCRs</div><div class="stat-value">${openNCRs}</div><div class="stat-sub">${failed} inspections failed</div></div>
+      <div class="stat-card yellow"><div class="stat-label">Open CAPAs</div><div class="stat-value">${openCAPAs}</div><div class="stat-sub">${pending} pending inspections</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Inspection Breakdown</span></div>
+        <div class="card-body">
+          ${[['Incoming',inspections.filter(i=>i.type==='incoming').length,'📦'],
+             ['In-Process',inspections.filter(i=>i.type==='inprocess').length,'⚙️'],
+             ['Pre-Shipment',inspections.filter(i=>i.type==='preshipment').length,'🚚']]
+            .map(([l,v,ic])=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-100)">
+              <span style="font-size:13px">${ic} ${l}</span>
+              <strong style="font-size:15px">${v}</strong>
+            </div>`).join('')}
+          <div style="margin-top:16px">
+            <div class="section-title" style="margin-bottom:8px">Pass Rate</div>
+            <div class="score-bar"><div class="score-fill" style="width:${passRate}%;background:${passRate>=80?'#057a55':passRate>=60?'#c27803':'#c81e1e'}"></div></div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:4px">${passRate}% of ${total} inspections passed</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Supplier Performance</span></div>
+        <div class="card-body">
+          ${suppliers.map(s=>`
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:13px;font-weight:500">${s.name}</span>
+                <span style="font-size:13px;font-weight:700;color:${s.score>=80?'var(--success)':s.score>=60?'var(--warning)':'var(--danger)'}">${s.score}</span>
+              </div>
+              <div class="score-bar"><div class="score-fill" style="width:${s.score}%;background:${s.score>=80?'#057a55':s.score>=60?'#c27803':'#c81e1e'}"></div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent Inspections</span>
+        <button class="btn btn-primary btn-sm" onclick="showNewInspectionMenu()">+ New</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Description</th><th>Qty</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${recent.map(i => `
+              <tr>
+                <td>${i.date}</td>
+                <td><span style="font-size:12px;text-transform:capitalize">${i.type === 'inprocess' ? 'In-Process' : i.type === 'preshipment' ? 'Pre-Ship' : 'Incoming'}</span></td>
+                <td><span style="font-weight:500">${i.poNumber || i.workOrder || '—'}</span></td>
+                <td>${i.description}</td>
+                <td>${i.qty}</td>
+                <td><span class="badge badge-${i.status}">${i.status.charAt(0).toUpperCase()+i.status.slice(1)}</span></td>
+                <td><button class="btn btn-secondary btn-sm" onclick="viewInspection('${i.id}')">View</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// INSPECTION LIST (generic)
+// ============================================================
+function renderInspectionList(type) {
+  const inspections = DB.get('inspections').filter(i => i.type === type).sort((a,b) => b.createdAt - a.createdAt);
+  const typeLabel = type === 'inprocess' ? 'In-Process' : type === 'preshipment' ? 'Pre-Shipment' : 'Incoming';
+
+  const total = inspections.length;
+  const passed = inspections.filter(i=>i.status==='pass').length;
+  const failed = inspections.filter(i=>i.status==='fail').length;
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">${typeLabel} Inspections</div>
+        <div class="page-sub">${total} total · ${passed} passed · ${failed} failed</div>
+      </div>
+      <button class="btn btn-primary" onclick="openInspectionForm('${type}')">+ New ${typeLabel} Inspection</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th>
+            ${type==='incoming'?'<th>Supplier</th><th>PO #</th>':''}
+            ${type==='inprocess'?'<th>Work Order</th><th>Process</th>':''}
+            ${type==='preshipment'?'<th>Customer</th><th>SO #</th>':''}
+            <th>Part #</th><th>Description</th><th>Qty</th><th>Inspected</th><th>Defects</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${inspections.length === 0 ? `<tr><td colspan="10"><div class="empty-state"><div class="icon">🔍</div><p>No ${typeLabel.toLowerCase()} inspections yet. Create your first one.</p></div></td></tr>` :
+            inspections.map(i => `
+              <tr>
+                <td>${i.date}</td>
+                ${type==='incoming'?`<td>${i.supplier||'—'}</td><td>${i.poNumber||'—'}</td>`:''}
+                ${type==='inprocess'?`<td>${i.workOrder||'—'}</td><td>${i.process||'—'}</td>`:''}
+                ${type==='preshipment'?`<td>${i.customer||'—'}</td><td>${i.poNumber||'—'}</td>`:''}
+                <td>${i.partNumber||'—'}</td>
+                <td>${i.description}</td>
+                <td>${i.qty}</td>
+                <td>${i.qtyInspected}</td>
+                <td>${i.defects > 0 ? `<span style="color:var(--danger);font-weight:600">${i.defects}</span>` : '0'}</td>
+                <td><span class="badge badge-${i.status}">${i.status.charAt(0).toUpperCase()+i.status.slice(1)}</span></td>
+                <td style="display:flex;gap:6px">
+                  <button class="btn btn-secondary btn-sm" onclick="viewInspection('${i.id}')">View</button>
+                  <button class="btn btn-secondary btn-sm" onclick="generateInspectionReport('${i.id}')">📄</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function incoming() { renderInspectionList('incoming'); }
+function inprocess() { renderInspectionList('inprocess'); }
+function preshipment() { renderInspectionList('preshipment'); }
+
+// ============================================================
+// INSPECTION FORM
+// ============================================================
+function showNewInspectionMenu() {
+  showModal(`
+    <div class="modal-header"><span class="modal-title">New Inspection</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">Select the type of inspection to create:</p>
+      <div style="display:grid;gap:10px">
+        ${[['📦','Incoming Inspection','incoming','Inspect materials/parts received from suppliers'],
+           ['⚙️','In-Process Inspection','inprocess','Inspect work in progress on the production floor'],
+           ['🚚','Pre-Shipment Inspection','preshipment','Final inspection before shipping to customer']]
+          .map(([ic,label,type,desc])=>`
+          <div onclick="closeModal();openInspectionForm('${type}')" style="display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--gray-200);border-radius:8px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#1a56db';this.style.background='#eff6ff'" onmouseout="this.style.borderColor='var(--gray-200)';this.style.background='white'">
+            <span style="font-size:28px">${ic}</span>
+            <div><div style="font-weight:600;font-size:14px">${label}</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px">${desc}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `);
+}
+
+// AQL lookup
+const AQL_TABLE = {
+  '0-8':{normal:{sampleSize:2,ac:0,re:1}}, '9-15':{normal:{sampleSize:3,ac:0,re:1}},
+  '16-25':{normal:{sampleSize:5,ac:0,re:1}}, '26-50':{normal:{sampleSize:8,ac:0,re:1}},
+  '51-90':{normal:{sampleSize:13,ac:1,re:2}}, '91-150':{normal:{sampleSize:20,ac:1,re:2}},
+  '151-280':{normal:{sampleSize:32,ac:2,re:3}}, '281-500':{normal:{sampleSize:50,ac:3,re:4}},
+  '501-1200':{normal:{sampleSize:80,ac:5,re:6}}, '1201-3200':{normal:{sampleSize:125,ac:7,re:8}},
+  '3201-10000':{normal:{sampleSize:200,ac:10,re:11}},
+};
+
+function getAQL(qty) {
+  const ranges = [[0,8],[9,15],[16,25],[26,50],[51,90],[91,150],[151,280],[281,500],[501,1200],[1201,3200],[3201,10000]];
+  for (const [lo,hi] of ranges) {
+    if (qty >= lo && qty <= hi) {
+      const key = `${lo}-${hi}`;
+      return AQL_TABLE[key]?.normal;
+    }
+  }
+  return { sampleSize: Math.ceil(qty * 0.02), ac: Math.floor(qty*0.02*0.04), re: Math.floor(qty*0.02*0.04)+1 };
+}
+
+const CHECKLISTS = {
+  incoming: ['Quantity matches PO','Part numbers match','No shipping damage','Correct labeling/marking','Dimensional check (sample)','Visual/cosmetic inspection','Material certification reviewed','Packaging condition acceptable'],
+  inprocess: ['Previous operation sign-off','Work instructions present','Equipment/tooling calibrated','Material/WIP identified correctly','In-spec dimensions (sample)','Surface finish acceptable','Assembly torque/fit correct','Traveler/documentation complete'],
+  preshipment: ['Final quantity confirmed','100% visual inspection complete','Dimensions/performance verified','Correct labeling for shipment','Packing list matches order','Export documentation complete','Special customer requirements met','Safety/compliance marking verified'],
+};
+
+function openInspectionForm(type, existingId=null) {
+  const existing = existingId ? DB.get('inspections').find(i=>i.id===existingId) : null;
+  const typeLabel = type==='inprocess'?'In-Process':type==='preshipment'?'Pre-Shipment':'Incoming';
+  const suppliers = DB.get('suppliers');
+  const checklist = CHECKLISTS[type];
+
+  const photoId = 'photos_'+DB.id();
+  let photos = existing?.photos || [];
+
+  const refFields = {
+    incoming: `
+      <div class="form-group"><label>Supplier</label>
+        <select name="supplier" required><option value="">Select supplier...</option>
+          ${suppliers.map(s=>`<option value="${s.name}" ${existing?.supplier===s.name?'selected':''}>${s.name}</option>`).join('')}
+          <option value="__new__">+ Add new supplier</option>
+        </select></div>
+      <div class="form-group"><label>PO Number</label><input name="poNumber" value="${existing?.poNumber||''}" placeholder="PO-2024-001" required></div>
+    `,
+    inprocess: `
+      <div class="form-group"><label>Work Order</label><input name="workOrder" value="${existing?.workOrder||''}" placeholder="WO-4401" required></div>
+      <div class="form-group"><label>Process / Station</label><input name="process" value="${existing?.process||''}" placeholder="Assembly Line 3"></div>
+    `,
+    preshipment: `
+      <div class="form-group"><label>Customer</label><input name="customer" value="${existing?.customer||''}" placeholder="Customer name" required></div>
+      <div class="form-group"><label>Sales Order #</label><input name="poNumber" value="${existing?.poNumber||''}" placeholder="SO-8801"></div>
+    `,
+  };
+
+  showModal(`
+    <div class="modal-header">
+      <span class="modal-title">${existingId?'Edit':'New'} ${typeLabel} Inspection</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="inspection-form" onsubmit="saveInspection(event,'${type}','${existingId||''}')">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-details')">Details</div>
+          <div class="tab" onclick="switchTab(this,'tab-checklist')">Checklist</div>
+          <div class="tab" onclick="switchTab(this,'tab-photos')">Photos</div>
+        </div>
+
+        <!-- Details tab -->
+        <div id="tab-details">
+          <div class="form-grid">
+            <div class="form-group"><label>Date</label><input type="date" name="date" value="${existing?.date||new Date().toISOString().slice(0,10)}" required></div>
+            ${refFields[type]}
+            <div class="form-group"><label>Part Number</label><input name="partNumber" value="${existing?.partNumber||''}" placeholder="PN-0001"></div>
+            <div class="form-group"><label>Description</label><input name="description" value="${existing?.description||''}" placeholder="Part description" required></div>
+            <div class="form-group"><label>Total Quantity</label><input type="number" name="qty" id="qty-input" value="${existing?.qty||''}" min="1" required onchange="updateAQL(this.value)"></div>
+            <div class="form-group"><label>Qty Inspected</label><input type="number" name="qtyInspected" id="qty-inspected" value="${existing?.qtyInspected||''}" min="0"></div>
+            <div class="form-group"><label>Defects Found</label><input type="number" name="defects" value="${existing?.defects||0}" min="0"></div>
+            <div class="form-group"><label>Inspector</label><input name="inspector" value="${existing?.inspector||''}" placeholder="Inspector name"></div>
+          </div>
+          <div id="aql-result" class="aql-display mt-4" style="display:none"></div>
+          <div class="form-group full mt-4"><label>Notes / Observations</label><textarea name="notes">${existing?.notes||''}</textarea></div>
+        </div>
+
+        <!-- Checklist tab -->
+        <div id="tab-checklist" style="display:none">
+          <div class="section-title">Inspection Checklist</div>
+          <div id="checklist-items">
+            ${checklist.map((item,idx)=>{
+              const prev = existing?.checklist?.find(c=>c.item===item);
+              return `<div class="checklist-item">
+                <span class="check-label">${idx+1}. ${item}</span>
+                <div class="check-result">
+                  <button type="button" class="check-btn pass ${prev?.result==='pass'?'active':''}" onclick="setCheck(this,'pass')">Pass</button>
+                  <button type="button" class="check-btn fail ${prev?.result==='fail'?'active':''}" onclick="setCheck(this,'fail')">Fail</button>
+                  <button type="button" class="check-btn na ${prev?.result==='n/a'?'active':''}" onclick="setCheck(this,'n/a')">N/A</button>
+                </div>
+                <input type="hidden" name="check_${idx}" value="${prev?.result||''}">
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Photos tab -->
+        <div id="tab-photos" style="display:none">
+          <div class="section-title">Inspection Photos</div>
+          <div class="photo-grid" id="${photoId}">
+            ${photos.map((p,i)=>`
+              <div class="photo-item">
+                <img src="${p.data}" alt="photo">
+                <button type="button" class="remove-photo" onclick="removePhoto('${photoId}',${i})">×</button>
+                <div class="photo-caption">${p.caption||'Photo '+(i+1)}</div>
+              </div>`).join('')}
+            <div class="photo-add" onclick="triggerPhotoUpload('${photoId}')">
+              <span style="font-size:24px">📷</span>
+              <span>Add Photo</span>
+            </div>
+          </div>
+          <input type="hidden" name="photos" id="photos-data-${photoId}" value="${encodeURIComponent(JSON.stringify(photos))}">
+          <p style="font-size:11px;color:var(--gray-400);margin-top:12px">Photos are stored locally. For best results, use images under 2MB.</p>
+        </div>
+
+        <hr class="divider">
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Inspection</button>
+        </div>
+      </form>
+    </div>
+  `);
+
+  if (existing?.qty) setTimeout(()=>updateAQL(existing.qty), 100);
+  window._currentPhotoId = photoId;
+  window._currentPhotos = [...photos];
+}
+
+function updateAQL(qty) {
+  const el = document.getElementById('aql-result');
+  if (!qty || qty < 1) { el.style.display='none'; return; }
+  const aql = getAQL(parseInt(qty));
+  el.style.display = '';
+  el.innerHTML = `<strong>AQL 1.0 Sampling Plan:</strong> Inspect <strong>${aql.sampleSize}</strong> units · Accept if defects ≤ <strong>${aql.ac}</strong> · Reject if defects ≥ <strong>${aql.re}</strong>`;
+  const qi = document.getElementById('qty-inspected');
+  if (qi && !qi.value) qi.value = aql.sampleSize;
+}
+
+function setCheck(btn, result) {
+  const parent = btn.closest('.check-result');
+  parent.querySelectorAll('.check-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const idx = btn.closest('.checklist-item').querySelector('input[type=hidden]').name.replace('check_','');
+  btn.closest('.checklist-item').querySelector('input[type=hidden]').value = result;
+}
+
+function switchTab(tabEl, targetId) {
+  tabEl.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tabEl.classList.add('active');
+  const modal = tabEl.closest('.modal-body');
+  ['tab-details','tab-checklist','tab-photos'].forEach(id=>{
+    const el = modal.querySelector('#'+id);
+    if (el) el.style.display = id===targetId ? '' : 'none';
+  });
+}
+
+function saveInspection(e, type, existingId) {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form));
+  const checklist = CHECKLISTS[type].map((item,idx)=>({ item, result: data['check_'+idx]||'' }));
+  let photos = [];
+  try { photos = JSON.parse(decodeURIComponent(data.photos||'[]')); } catch {}
+
+  const inspections = DB.get('inspections');
+  const inspection = {
+    id: existingId || DB.id(),
+    type,
+    date: data.date,
+    partNumber: data.partNumber,
+    description: data.description,
+    qty: parseInt(data.qty)||0,
+    qtyInspected: parseInt(data.qtyInspected)||0,
+    defects: parseInt(data.defects)||0,
+    inspector: data.inspector,
+    notes: data.notes,
+    checklist,
+    photos,
+    status: parseInt(data.defects)>0 ? (parseInt(data.defects)>=getAQL(parseInt(data.qty)).re ? 'fail' : 'pass') : 'pass',
+    createdAt: existingId ? inspections.find(i=>i.id===existingId)?.createdAt : Date.now(),
+    updatedAt: Date.now(),
+    ...(type==='incoming' && { supplier: data.supplier, poNumber: data.poNumber }),
+    ...(type==='inprocess' && { workOrder: data.workOrder, process: data.process }),
+    ...(type==='preshipment' && { customer: data.customer, poNumber: data.poNumber }),
+  };
+
+  if (existingId) {
+    const idx = inspections.findIndex(i=>i.id===existingId);
+    inspections[idx] = inspection;
+  } else {
+    inspections.push(inspection);
+  }
+  DB.set('inspections', inspections);
+
+  // Auto-create NCR if failed
+  if (inspection.status === 'fail' && !existingId) {
+    const ncrs = DB.get('ncrs');
+    const ncrNum = 'NCR-' + String(ncrs.length+1).padStart(3,'0');
+    ncrs.push({
+      id: DB.id(), number: ncrNum,
+      date: inspection.date,
+      title: `Non-Conformance - ${inspection.description}`,
+      inspectionId: inspection.id,
+      severity: 'major', status: 'open',
+      description: `${inspection.defects} defect(s) found in ${inspection.qtyInspected} units inspected. ${inspection.notes}`,
+      disposition: '', assignedTo: '', photos: [],
+      createdAt: Date.now()
+    });
+    DB.set('ncrs', ncrs);
+    showToast(`NCR ${ncrNum} auto-created for failed inspection`, 'info');
+  }
+
+  closeModal();
+  showToast(`Inspection ${existingId?'updated':'saved'} successfully!`, 'success');
+  pages[type]();
+  updateNCRBadge();
+}
+
+// ============================================================
+// VIEW INSPECTION
+// ============================================================
+function viewInspection(id) {
+  const insp = DB.get('inspections').find(i=>i.id===id);
+  if (!insp) return;
+  const typeLabel = insp.type==='inprocess'?'In-Process':insp.type==='preshipment'?'Pre-Shipment':'Incoming';
+
+  const refRow = insp.type==='incoming' ? `<dt>Supplier</dt><dd>${insp.supplier||'—'}</dd><dt>PO #</dt><dd>${insp.poNumber||'—'}</dd>`
+    : insp.type==='inprocess' ? `<dt>Work Order</dt><dd>${insp.workOrder||'—'}</dd><dt>Process</dt><dd>${insp.process||'—'}</dd>`
+    : `<dt>Customer</dt><dd>${insp.customer||'—'}</dd><dt>Order #</dt><dd>${insp.poNumber||'—'}</dd>`;
+
+  const checks = insp.checklist||[];
+  const passed = checks.filter(c=>c.result==='pass').length;
+  const failed = checks.filter(c=>c.result==='fail').length;
+
+  showModal(`
+    <div class="modal-header">
+      <span class="modal-title">Inspection — ${insp.description}</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <span class="badge badge-${insp.status}" style="font-size:13px;padding:5px 12px">${insp.status.toUpperCase()}</span>
+        <span style="font-size:13px;color:var(--gray-500)">${typeLabel} · ${insp.date}</span>
+      </div>
+      <div class="report-section">
+        <h3>Inspection Details</h3>
+        <dl class="report-kv" style="color:var(--gray-700)">
+          ${refRow}
+          <dt>Part #</dt><dd style="color:var(--gray-800)">${insp.partNumber||'—'}</dd>
+          <dt>Quantity</dt><dd style="color:var(--gray-800)">${insp.qty}</dd>
+          <dt>Inspected</dt><dd style="color:var(--gray-800)">${insp.qtyInspected}</dd>
+          <dt>Defects</dt><dd style="color:${insp.defects>0?'var(--danger)':'var(--success)'};font-weight:700">${insp.defects}</dd>
+          <dt>Inspector</dt><dd style="color:var(--gray-800)">${insp.inspector||'—'}</dd>
+        </dl>
+      </div>
+      ${insp.notes ? `<div class="report-section"><h3>Notes</h3><p style="font-size:13px;color:var(--gray-700)">${insp.notes}</p></div>` : ''}
+      ${checks.length ? `
+        <div class="report-section">
+          <h3>Checklist (${passed}/${checks.length} passed)</h3>
+          ${checks.map(c=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px">
+              <span>${c.item}</span>
+              <span class="badge badge-${c.result==='pass'?'pass':c.result==='fail'?'fail':'draft'}">${c.result||'—'}</span>
+            </div>`).join('')}
+        </div>` : ''}
+      ${insp.photos?.length ? `
+        <div class="report-section">
+          <h3>Photos (${insp.photos.length})</h3>
+          <div class="photo-grid">
+            ${insp.photos.map((p,i)=>`<div class="photo-item"><img src="${p.data}" alt="Photo ${i+1}"><div class="photo-caption">${p.caption||'Photo '+(i+1)}</div></div>`).join('')}
+          </div>
+        </div>` : ''}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      <button class="btn btn-secondary" onclick="closeModal();openInspectionForm('${insp.type}','${insp.id}')">Edit</button>
+      <button class="btn btn-primary" onclick="closeModal();generateInspectionReport('${insp.id}')">📄 Generate Report</button>
+    </div>
+  `);
+}
+
+// ============================================================
+// NCR
+// ============================================================
+function ncr() {
+  const ncrs = DB.get('ncrs').sort((a,b)=>b.createdAt-a.createdAt);
+  const open = ncrs.filter(n=>n.status==='open').length;
+  const closed = ncrs.filter(n=>n.status==='closed').length;
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Non-Conformance Reports</div>
+        <div class="page-sub">${open} open · ${closed} closed</div>
+      </div>
+      <button class="btn btn-primary" onclick="openNCRForm()">+ New NCR</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>NCR #</th><th>Date</th><th>Title</th><th>Severity</th><th>Status</th><th>Assigned To</th><th></th></tr></thead>
+          <tbody>
+            ${ncrs.length===0 ? `<tr><td colspan="7"><div class="empty-state"><div class="icon">✅</div><p>No non-conformances recorded.</p></div></td></tr>` :
+            ncrs.map(n=>`
+              <tr>
+                <td><strong>${n.number}</strong></td>
+                <td>${n.date}</td>
+                <td>${n.title}</td>
+                <td><span class="badge badge-${n.severity}">${n.severity.charAt(0).toUpperCase()+n.severity.slice(1)}</span></td>
+                <td><span class="badge badge-${n.status}">${n.status.charAt(0).toUpperCase()+n.status.slice(1)}</span></td>
+                <td>${n.assignedTo||'—'}</td>
+                <td style="display:flex;gap:6px">
+                  <button class="btn btn-secondary btn-sm" onclick="openNCRForm('${n.id}')">Edit</button>
+                  <button class="btn btn-${n.status==='open'?'success':'secondary'} btn-sm" onclick="toggleNCR('${n.id}')">${n.status==='open'?'Close':'Reopen'}</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openNCRForm(id=null) {
+  const existing = id ? DB.get('ncrs').find(n=>n.id===id) : null;
+  const inspections = DB.get('inspections');
+
+  showModal(`
+    <div class="modal-header"><span class="modal-title">${id?'Edit':'New'} Non-Conformance Report</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="saveNCR(event,'${id||''}')">
+        <div class="form-grid">
+          <div class="form-group"><label>Date</label><input type="date" name="date" value="${existing?.date||new Date().toISOString().slice(0,10)}" required></div>
+          <div class="form-group"><label>Title</label><input name="title" value="${existing?.title||''}" placeholder="Brief description of non-conformance" required></div>
+          <div class="form-group"><label>Severity</label>
+            <select name="severity">
+              <option value="critical" ${existing?.severity==='critical'?'selected':''}>Critical</option>
+              <option value="major" ${existing?.severity==='major'||!existing?'selected':''}>Major</option>
+              <option value="minor" ${existing?.severity==='minor'?'selected':''}>Minor</option>
+            </select></div>
+          <div class="form-group"><label>Assigned To</label><input name="assignedTo" value="${existing?.assignedTo||''}" placeholder="Name or role"></div>
+          <div class="form-group"><label>Related Inspection</label>
+            <select name="inspectionId">
+              <option value="">None</option>
+              ${inspections.map(i=>`<option value="${i.id}" ${existing?.inspectionId===i.id?'selected':''}>${i.description} (${i.date})</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label>Status</label>
+            <select name="status">
+              <option value="open" ${existing?.status==='open'||!existing?'selected':''}>Open</option>
+              <option value="closed" ${existing?.status==='closed'?'selected':''}>Closed</option>
+            </select></div>
+          <div class="form-group full"><label>Description / Defect Details</label><textarea name="description" required>${existing?.description||''}</textarea></div>
+          <div class="form-group full"><label>Disposition / Resolution</label><textarea name="disposition">${existing?.disposition||''}</textarea></div>
+        </div>
+        <hr class="divider">
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save NCR</button>
+        </div>
+      </form>
+    </div>
+  `);
+}
+
+function saveNCR(e, existingId) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  const ncrs = DB.get('ncrs');
+  const ncr = {
+    id: existingId || DB.id(),
+    number: existingId ? ncrs.find(n=>n.id===existingId).number : 'NCR-'+String(ncrs.length+1).padStart(3,'0'),
+    date: data.date, title: data.title, severity: data.severity,
+    status: data.status, description: data.description, disposition: data.disposition,
+    assignedTo: data.assignedTo, inspectionId: data.inspectionId,
+    photos: existingId ? ncrs.find(n=>n.id===existingId).photos : [],
+    createdAt: existingId ? ncrs.find(n=>n.id===existingId).createdAt : Date.now()
+  };
+  if (existingId) ncrs[ncrs.findIndex(n=>n.id===existingId)] = ncr;
+  else ncrs.push(ncr);
+  DB.set('ncrs', ncrs);
+  closeModal(); showToast('NCR saved!', 'success'); ncr_page(); updateNCRBadge();
+}
+// Alias to avoid naming conflict
+function ncr_page() { ncr(); }
+
+function toggleNCR(id) {
+  const ncrs = DB.get('ncrs');
+  const n = ncrs.find(x=>x.id===id);
+  n.status = n.status==='open'?'closed':'open';
+  DB.set('ncrs', ncrs);
+  showToast(`NCR ${n.status}`, 'success');
+  ncr(); updateNCRBadge();
+}
+
+// ============================================================
+// CAPA
+// ============================================================
+function capa() {
+  const capas = DB.get('capas').sort((a,b)=>b.createdAt-a.createdAt);
+  const ncrs = DB.get('ncrs');
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">Corrective & Preventive Actions</div>
+        <div class="page-sub">${capas.filter(c=>c.status==='open').length} open · ${capas.filter(c=>c.status==='closed').length} closed</div>
+      </div>
+      <button class="btn btn-primary" onclick="openCAPAForm()">+ New CAPA</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>CAPA #</th><th>Title</th><th>Type</th><th>Root Cause</th><th>Owner</th><th>Due Date</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${capas.length===0 ? `<tr><td colspan="8"><div class="empty-state"><div class="icon">🔧</div><p>No CAPAs recorded.</p></div></td></tr>` :
+            capas.map(c=>`
+              <tr>
+                <td><strong>${c.number}</strong></td>
+                <td>${c.title}</td>
+                <td><span class="badge badge-${c.type==='corrective'?'fail':'inprogress'}">${c.type.charAt(0).toUpperCase()+c.type.slice(1)}</span></td>
+                <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.rootCause||'—'}</td>
+                <td>${c.owner||'—'}</td>
+                <td>${c.dueDate||'—'}</td>
+                <td><span class="badge badge-${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span></td>
+                <td style="display:flex;gap:6px">
+                  <button class="btn btn-secondary btn-sm" onclick="openCAPAForm('${c.id}')">Edit</button>
+                  <button class="btn btn-${c.status==='open'?'success':'secondary'} btn-sm" onclick="toggleCAPA('${c.id}')">${c.status==='open'?'Close':'Reopen'}</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openCAPAForm(id=null) {
+  const existing = id ? DB.get('capas').find(c=>c.id===id) : null;
+  const ncrs = DB.get('ncrs');
+
+  showModal(`
+    <div class="modal-header"><span class="modal-title">${id?'Edit':'New'} CAPA</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="saveCAPA(event,'${id||''}')">
+        <div class="form-grid">
+          <div class="form-group"><label>Title</label><input name="title" value="${existing?.title||''}" placeholder="CAPA title" required></div>
+          <div class="form-group"><label>Type</label>
+            <select name="type">
+              <option value="corrective" ${existing?.type==='corrective'||!existing?'selected':''}>Corrective Action</option>
+              <option value="preventive" ${existing?.type==='preventive'?'selected':''}>Preventive Action</option>
+            </select></div>
+          <div class="form-group"><label>Related NCR</label>
+            <select name="ncrId">
+              <option value="">None</option>
+              ${ncrs.map(n=>`<option value="${n.id}" ${existing?.ncrId===n.id?'selected':''}>${n.number} — ${n.title}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label>Owner</label><input name="owner" value="${existing?.owner||''}" placeholder="Person responsible"></div>
+          <div class="form-group"><label>Due Date</label><input type="date" name="dueDate" value="${existing?.dueDate||''}"></div>
+          <div class="form-group"><label>Status</label>
+            <select name="status">
+              <option value="open" ${existing?.status==='open'||!existing?'selected':''}>Open</option>
+              <option value="closed" ${existing?.status==='closed'?'selected':''}>Closed</option>
+            </select></div>
+          <div class="form-group full"><label>Root Cause Analysis</label><textarea name="rootCause">${existing?.rootCause||''}</textarea></div>
+          <div class="form-group full"><label>Action Plan</label><textarea name="action">${existing?.action||''}</textarea></div>
+          <div class="form-group full"><label>Effectiveness Verification</label><textarea name="effectiveness">${existing?.effectiveness||''}</textarea></div>
+        </div>
+        <hr class="divider">
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save CAPA</button>
+        </div>
+      </form>
+    </div>
+  `);
+}
+
+function saveCAPA(e, existingId) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  const capas = DB.get('capas');
+  const capaRec = {
+    id: existingId || DB.id(),
+    number: existingId ? capas.find(c=>c.id===existingId).number : 'CAPA-'+String(capas.length+1).padStart(3,'0'),
+    ...data, createdAt: existingId ? capas.find(c=>c.id===existingId).createdAt : Date.now()
+  };
+  if (existingId) capas[capas.findIndex(c=>c.id===existingId)] = capaRec;
+  else capas.push(capaRec);
+  DB.set('capas', capas);
+  closeModal(); showToast('CAPA saved!', 'success'); capa();
+}
+
+function toggleCAPA(id) {
+  const capas = DB.get('capas');
+  const c = capas.find(x=>x.id===id);
+  c.status = c.status==='open'?'closed':'open';
+  DB.set('capas', capas);
+  showToast(`CAPA ${c.status}`, 'success'); capa();
+}
+
+// ============================================================
+// SUPPLIERS
+// ============================================================
+function suppliers() {
+  const sups = DB.get('suppliers');
+  const inspections = DB.get('inspections');
+  const ncrs = DB.get('ncrs');
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Supplier Management</div><div class="page-sub">${sups.length} suppliers</div></div>
+      <button class="btn btn-primary" onclick="openSupplierForm()">+ Add Supplier</button>
+    </div>
+    <div style="display:grid;gap:16px">
+      ${sups.map(s=>{
+        const sInsp = inspections.filter(i=>i.supplier===s.name);
+        const sNCRs = ncrs.filter(n=>sInsp.some(i=>i.id===n.inspectionId));
+        const passRate = sInsp.length ? Math.round(sInsp.filter(i=>i.status==='pass').length/sInsp.length*100) : null;
+        return `
+        <div class="card">
+          <div class="card-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                  <span style="font-size:16px;font-weight:700">${s.name}</span>
+                  <span class="badge badge-${s.status==='approved'?'pass':s.status==='conditional'?'pending':'fail'}">${s.status}</span>
+                </div>
+                <div style="font-size:12px;color:var(--gray-500);margin-bottom:12px">
+                  ${s.contact} · ${s.email} · ${s.phone}
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                  <div><div style="font-size:11px;color:var(--gray-400)">Quality Score</div><div style="font-size:20px;font-weight:700;color:${s.score>=80?'var(--success)':s.score>=60?'var(--warning)':'var(--danger)'}">${s.score}</div></div>
+                  <div><div style="font-size:11px;color:var(--gray-400)">Inspections</div><div style="font-size:20px;font-weight:700">${sInsp.length}</div></div>
+                  <div><div style="font-size:11px;color:var(--gray-400)">Pass Rate</div><div style="font-size:20px;font-weight:700">${passRate!==null?passRate+'%':'—'}</div></div>
+                  <div><div style="font-size:11px;color:var(--gray-400)">Open NCRs</div><div style="font-size:20px;font-weight:700;color:${sNCRs.filter(n=>n.status==='open').length>0?'var(--danger)':'inherit'}">${sNCRs.filter(n=>n.status==='open').length}</div></div>
+                </div>
+                <div style="margin-top:12px">
+                  <div class="score-bar"><div class="score-fill" style="width:${s.score}%;background:${s.score>=80?'#057a55':s.score>=60?'#c27803':'#c81e1e'}"></div></div>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="openSupplierForm('${s.id}')">Edit</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${sups.length===0?`<div class="empty-state"><div class="icon">🏭</div><p>No suppliers added yet.</p></div>`:''}
+    </div>
+  `;
+}
+
+function openSupplierForm(id=null) {
+  const existing = id ? DB.get('suppliers').find(s=>s.id===id) : null;
+
+  showModal(`
+    <div class="modal-header"><span class="modal-title">${id?'Edit':'Add'} Supplier</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="saveSupplier(event,'${id||''}')">
+        <div class="form-grid">
+          <div class="form-group"><label>Company Name</label><input name="name" value="${existing?.name||''}" required placeholder="Supplier name"></div>
+          <div class="form-group"><label>Contact Person</label><input name="contact" value="${existing?.contact||''}" placeholder="Contact name"></div>
+          <div class="form-group"><label>Email</label><input type="email" name="email" value="${existing?.email||''}" placeholder="email@supplier.com"></div>
+          <div class="form-group"><label>Phone</label><input name="phone" value="${existing?.phone||''}" placeholder="555-0100"></div>
+          <div class="form-group"><label>Quality Score (0-100)</label><input type="number" name="score" value="${existing?.score||75}" min="0" max="100"></div>
+          <div class="form-group"><label>Status</label>
+            <select name="status">
+              <option value="approved" ${existing?.status==='approved'||!existing?'selected':''}>Approved</option>
+              <option value="conditional" ${existing?.status==='conditional'?'selected':''}>Conditional</option>
+              <option value="suspended" ${existing?.status==='suspended'?'selected':''}>Suspended</option>
+            </select></div>
+        </div>
+        <hr class="divider">
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Supplier</button>
+        </div>
+      </form>
+    </div>
+  `);
+}
+
+function saveSupplier(e, existingId) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  data.score = parseInt(data.score);
+  const sups = DB.get('suppliers');
+  const sup = { id: existingId || DB.id(), ...data };
+  if (existingId) sups[sups.findIndex(s=>s.id===existingId)] = sup;
+  else sups.push(sup);
+  DB.set('suppliers', sups);
+  closeModal(); showToast('Supplier saved!', 'success'); suppliers();
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+function reports() {
+  const inspections = DB.get('inspections').sort((a,b)=>b.createdAt-a.createdAt);
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Reports</div><div class="page-sub">Generate and print inspection reports</div></div>
+    </div>
+    <div class="card mb-4">
+      <div class="card-header"><span class="card-title">Inspection Reports</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Description</th><th>Status</th><th>Report</th></tr></thead>
+          <tbody>
+            ${inspections.map(i=>`
+              <tr>
+                <td>${i.date}</td>
+                <td style="text-transform:capitalize">${i.type==='inprocess'?'In-Process':i.type==='preshipment'?'Pre-Ship':'Incoming'}</td>
+                <td>${i.poNumber||i.workOrder||'—'}</td>
+                <td>${i.description}</td>
+                <td><span class="badge badge-${i.status}">${i.status.charAt(0).toUpperCase()+i.status.slice(1)}</span></td>
+                <td><button class="btn btn-primary btn-sm" onclick="generateInspectionReport('${i.id}')">📄 Generate</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Summary Report</span></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--gray-500);margin-bottom:12px">Generate a summary report of all inspections, NCRs, and supplier performance.</p>
+        <button class="btn btn-primary" onclick="generateSummaryReport()">📊 Generate Summary Report</button>
+      </div>
+    </div>
+  `;
+}
+
+function generateInspectionReport(id) {
+  const insp = DB.get('inspections').find(i=>i.id===id);
+  if (!insp) return;
+  const typeLabel = insp.type==='inprocess'?'In-Process':insp.type==='preshipment'?'Pre-Shipment':'Incoming';
+  const aql = insp.qty ? getAQL(insp.qty) : null;
+  const checks = insp.checklist||[];
+  const passed = checks.filter(c=>c.result==='pass').length;
+  const failed = checks.filter(c=>c.result==='fail').length;
+
+  const refRows = insp.type==='incoming' ? `<tr><td>Supplier</td><td>${insp.supplier||'—'}</td></tr><tr><td>PO Number</td><td>${insp.poNumber||'—'}</td></tr>`
+    : insp.type==='inprocess' ? `<tr><td>Work Order</td><td>${insp.workOrder||'—'}</td></tr><tr><td>Process</td><td>${insp.process||'—'}</td></tr>`
+    : `<tr><td>Customer</td><td>${insp.customer||'—'}</td></tr><tr><td>Order Number</td><td>${insp.poNumber||'—'}</td></tr>`;
+
+  const reportHTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Inspection Report — ${insp.description}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, sans-serif; color: #1f2937; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .header { background: #1f2937; color: white; padding: 28px 32px; border-radius: 8px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header p { font-size: 13px; color: #9ca3af; margin-top: 4px; }
+  .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .pass { background: #def7ec; color: #057a55; }
+  .fail { background: #fde8e8; color: #c81e1e; }
+  .pending { background: #fdf6b2; color: #c27803; }
+  h2 { font-size: 14px; font-weight: 700; color: #374151; border-bottom: 2px solid #1a56db; padding-bottom: 6px; margin-bottom: 14px; margin-top: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  th { background: #f3f4f6; padding: 9px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #6b7280; }
+  td { padding: 9px 12px; border-bottom: 1px solid #e5e7eb; }
+  .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .photo-item img { width: 100%; border-radius: 6px; border: 1px solid #e5e7eb; }
+  .photo-caption { font-size: 11px; color: #6b7280; margin-top: 4px; text-align: center; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; display: flex; justify-content: space-between; }
+  @media print { body { padding: 20px; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Quality On Point · ${typeLabel} Inspection Report</div>
+    <h1>${insp.description}</h1>
+    <p>${insp.partNumber||''} · ${insp.date}</p>
+  </div>
+  <span class="status-badge ${insp.status}">${insp.status.toUpperCase()}</span>
+</div>
+
+<h2>Inspection Details</h2>
+<table>
+  <thead><tr><th>Field</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Inspection Type</td><td>${typeLabel}</td></tr>
+    <tr><td>Date</td><td>${insp.date}</td></tr>
+    ${refRows}
+    <tr><td>Part Number</td><td>${insp.partNumber||'—'}</td></tr>
+    <tr><td>Description</td><td>${insp.description}</td></tr>
+    <tr><td>Total Quantity</td><td>${insp.qty}</td></tr>
+    <tr><td>Quantity Inspected</td><td>${insp.qtyInspected}</td></tr>
+    <tr><td>Defects Found</td><td>${insp.defects}</td></tr>
+    <tr><td>Inspector</td><td>${insp.inspector||'—'}</td></tr>
+    ${aql ? `<tr><td>AQL Sample Size (1.0)</td><td>${aql.sampleSize} (Accept ≤${aql.ac}, Reject ≥${aql.re})</td></tr>` : ''}
+  </tbody>
+</table>
+
+${insp.notes ? `<h2>Observations & Notes</h2><p style="font-size:13px;line-height:1.6">${insp.notes}</p>` : ''}
+
+${checks.length ? `
+<h2>Checklist Results (${passed} pass / ${failed} fail / ${checks.length-passed-failed} N/A)</h2>
+<table>
+  <thead><tr><th>#</th><th>Item</th><th>Result</th></tr></thead>
+  <tbody>
+    ${checks.map((c,i)=>`<tr><td>${i+1}</td><td>${c.item}</td><td style="font-weight:600;color:${c.result==='pass'?'#057a55':c.result==='fail'?'#c81e1e':'#6b7280'}">${(c.result||'—').toUpperCase()}</td></tr>`).join('')}
+  </tbody>
+</table>` : ''}
+
+${insp.photos?.length ? `
+<h2>Inspection Photos</h2>
+<div class="photo-grid">
+  ${insp.photos.map((p,i)=>`<div class="photo-item"><img src="${p.data}" alt="Photo ${i+1}"><div class="photo-caption">${p.caption||'Photo '+(i+1)}</div></div>`).join('')}
+</div>` : ''}
+
+<div class="footer">
+  <span>Quality On Point · Generated ${new Date().toLocaleString()}</span>
+  <span>Inspection ID: ${insp.id}</span>
+</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(reportHTML);
+  win.document.close();
+  setTimeout(()=>win.print(), 500);
+}
+
+function generateSummaryReport() {
+  const inspections = DB.get('inspections');
+  const ncrs = DB.get('ncrs');
+  const capas = DB.get('capas');
+  const sups = DB.get('suppliers');
+  const total = inspections.length;
+  const passed = inspections.filter(i=>i.status==='pass').length;
+  const passRate = total ? Math.round(passed/total*100) : 0;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Quality Summary Report</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,sans-serif; color:#1f2937; padding:40px; max-width:900px; margin:0 auto; }
+  .header { background:#1f2937; color:white; padding:28px 32px; border-radius:8px; margin-bottom:28px; }
+  h2 { font-size:14px; font-weight:700; color:#374151; border-bottom:2px solid #1a56db; padding-bottom:6px; margin:24px 0 14px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:16px; }
+  th { background:#f3f4f6; padding:9px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#6b7280; }
+  td { padding:9px 12px; border-bottom:1px solid #e5e7eb; }
+  .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .stat { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:16px; text-align:center; }
+  .stat-val { font-size:28px; font-weight:700; }
+  .stat-lab { font-size:12px; color:#6b7280; margin-top:2px; }
+  .footer { margin-top:40px; padding-top:20px; border-top:1px solid #e5e7eb; font-size:12px; color:#9ca3af; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Quality On Point · Quality Summary Report</div>
+  <div style="font-size:22px;font-weight:700">Quality Management Summary</div>
+  <div style="font-size:13px;color:#9ca3af;margin-top:4px">Generated ${new Date().toLocaleDateString()}</div>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-val">${total}</div><div class="stat-lab">Total Inspections</div></div>
+  <div class="stat"><div class="stat-val" style="color:#057a55">${passRate}%</div><div class="stat-lab">Pass Rate</div></div>
+  <div class="stat"><div class="stat-val" style="color:#c81e1e">${ncrs.filter(n=>n.status==='open').length}</div><div class="stat-lab">Open NCRs</div></div>
+  <div class="stat"><div class="stat-val" style="color:#c27803">${capas.filter(c=>c.status==='open').length}</div><div class="stat-lab">Open CAPAs</div></div>
+</div>
+
+<h2>Inspections by Type</h2>
+<table>
+  <thead><tr><th>Type</th><th>Total</th><th>Pass</th><th>Fail</th><th>Pass Rate</th></tr></thead>
+  <tbody>
+    ${['incoming','inprocess','preshipment'].map(t=>{
+      const ti = inspections.filter(i=>i.type===t);
+      const tp = ti.filter(i=>i.status==='pass').length;
+      return `<tr><td>${t==='inprocess'?'In-Process':t==='preshipment'?'Pre-Shipment':'Incoming'}</td><td>${ti.length}</td><td>${tp}</td><td>${ti.filter(i=>i.status==='fail').length}</td><td>${ti.length?Math.round(tp/ti.length*100)+'%':'—'}</td></tr>`;
+    }).join('')}
+  </tbody>
+</table>
+
+<h2>Supplier Performance</h2>
+<table>
+  <thead><tr><th>Supplier</th><th>Score</th><th>Status</th><th>Inspections</th><th>Pass Rate</th><th>NCRs</th></tr></thead>
+  <tbody>
+    ${sups.map(s=>{
+      const si = inspections.filter(i=>i.supplier===s.name);
+      const sp = si.filter(i=>i.status==='pass').length;
+      const sn = ncrs.filter(n=>si.some(i=>i.id===n.inspectionId));
+      return `<tr><td>${s.name}</td><td style="font-weight:700;color:${s.score>=80?'#057a55':s.score>=60?'#c27803':'#c81e1e'}">${s.score}</td><td>${s.status}</td><td>${si.length}</td><td>${si.length?Math.round(sp/si.length*100)+'%':'—'}</td><td>${sn.length}</td></tr>`;
+    }).join('')}
+  </tbody>
+</table>
+
+<h2>Non-Conformance Reports</h2>
+<table>
+  <thead><tr><th>NCR #</th><th>Date</th><th>Title</th><th>Severity</th><th>Status</th></tr></thead>
+  <tbody>${ncrs.map(n=>`<tr><td>${n.number}</td><td>${n.date}</td><td>${n.title}</td><td>${n.severity}</td><td>${n.status}</td></tr>`).join('')}</tbody>
+</table>
+
+<h2>CAPA Summary</h2>
+<table>
+  <thead><tr><th>CAPA #</th><th>Title</th><th>Type</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead>
+  <tbody>${capas.map(c=>`<tr><td>${c.number}</td><td>${c.title}</td><td>${c.type}</td><td>${c.owner||'—'}</td><td>${c.dueDate||'—'}</td><td>${c.status}</td></tr>`).join('')}</tbody>
+</table>
+
+<div class="footer">Quality On Point · Generated ${new Date().toLocaleString()}</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(), 500);
+}
+
+// ============================================================
+// PHOTO UPLOAD
+// ============================================================
+function triggerPhotoUpload(gridId) {
+  window._currentPhotoId = gridId;
+  const input = document.getElementById('photo-input');
+  input.onchange = (e) => handlePhotoUpload(e, gridId);
+  input.click();
+}
+
+function handlePhotoUpload(e, gridId) {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (!window._currentPhotos) window._currentPhotos = [];
+      const photo = { data: ev.target.result, caption: file.name.replace(/\.[^.]+$/, ''), timestamp: Date.now() };
+      window._currentPhotos.push(photo);
+      updatePhotoGrid(gridId);
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function updatePhotoGrid(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  const photos = window._currentPhotos || [];
+  grid.innerHTML = photos.map((p,i)=>`
+    <div class="photo-item">
+      <img src="${p.data}" alt="photo">
+      <button type="button" class="remove-photo" onclick="removePhoto('${gridId}',${i})">×</button>
+      <div class="photo-caption">${p.caption||'Photo '+(i+1)}</div>
+    </div>`).join('') + `
+    <div class="photo-add" onclick="triggerPhotoUpload('${gridId}')">
+      <span style="font-size:24px">📷</span><span>Add Photo</span>
+    </div>`;
+  const hidden = document.getElementById('photos-data-'+gridId);
+  if (hidden) hidden.value = encodeURIComponent(JSON.stringify(photos));
+}
+
+function removePhoto(gridId, idx) {
+  if (!window._currentPhotos) return;
+  window._currentPhotos.splice(idx, 1);
+  updatePhotoGrid(gridId);
+}
+
+// ============================================================
+// MODAL / TOAST / UTIL
+// ============================================================
+function showModal(html) {
+  const container = document.getElementById('modal-container');
+  container.innerHTML = `<div class="modal-overlay" onclick="handleOverlayClick(event)"><div class="modal">${html}</div></div>`;
+}
+
+function handleOverlayClick(e) {
+  if (e.target.classList.contains('modal-overlay')) closeModal();
+}
+
+function closeModal() {
+  document.getElementById('modal-container').innerHTML = '';
+  window._currentPhotos = null;
+}
+
+function showToast(msg, type='success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function exportData() {
+  const data = {
+    inspections: DB.get('inspections'),
+    ncrs: DB.get('ncrs'),
+    capas: DB.get('capas'),
+    suppliers: DB.get('suppliers'),
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quality-data-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('Data exported!', 'success');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+navigate('dashboard');
+</script>
+</body>
+</html>

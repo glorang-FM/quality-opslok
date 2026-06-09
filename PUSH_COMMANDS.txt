@@ -1,0 +1,183 @@
+------------------------------------------------------------------------
+  HOW TO PUSH YOUR CHANGES TO GITHUB / RENDER
+  (Quality OpsLok — quality.opslok.com)
+------------------------------------------------------------------------
+
+Open a terminal and run these commands one at a time.
+(In VS Code: View -> Terminal)
+
+
+------------------------------------------------------------------------
+  ONE-TIME SETUP (first push only — skip after that)
+------------------------------------------------------------------------
+
+1. Navigate to your project folder
+------------------------------------
+cd "C:\Users\gmlor\Documents\Claude\Projects\Quality OpsLok"
+
+
+2. Initialize git
+-------------------
+git init
+git branch -M main
+
+
+3. Connect to GitHub
+----------------------
+  a) Go to github.com -> New repository
+  b) Name it: quality-opslok  (or whatever you prefer)
+  c) Leave it empty (no README, no .gitignore)
+  d) Copy the "...or push an existing repository" URL, then run:
+
+git remote add origin https://github.com/YOUR_USERNAME/quality-opslok.git
+
+
+4. First push
+---------------
+git add -A
+git commit -m "Initial scaffold: Quality OpsLok — inspections, NCRs, templates, auth"
+git push -u origin main
+
+
+------------------------------------------------------------------------
+  EVERY PUSH AFTER THAT
+------------------------------------------------------------------------
+
+1. Navigate to your project folder
+------------------------------------
+cd "C:\Users\gmlor\Documents\Claude\Projects\Quality OpsLok"
+
+
+2. Stage all changed files
+----------------------------
+git add -A
+
+
+3. Save a snapshot with a description (commit)
+------------------------------------------------
+git commit -m "describe what you changed here"
+
+
+4. Push to GitHub (Render auto-deploys from here)
+----------------------------------------------------
+git push origin main
+
+
+5. Wait ~2 minutes for Render to redeploy
+-------------------------------------------
+Watch progress at: dashboard.render.com -> your service -> Logs tab.
+When you see "Quality OpsLok server running on port ..." the deploy is live.
+
+
+------------------------------------------------------------------------
+  RENDER SETUP (first deploy only)
+------------------------------------------------------------------------
+
+Create TWO services on Render for this app:
+
+  SERVICE 1 — Web Service (server)
+  ----------------------------------
+  Root directory:   server
+  Build command:    npm install
+  Start command:    node index.js
+
+  Environment variables to set:
+    DATABASE_URL      = <your Supabase connection string>
+    JWT_SECRET        = <random string — generate at: randomkeygen.com>
+    CLIENT_URL        = https://quality.opslok.com  (or your Netlify URL)
+    NODE_ENV          = production
+    BILLING_ENFORCED  = false
+
+  SERVICE 2 — Static Site (client)
+  -----------------------------------
+  Root directory:   client
+  Build command:    npm install && npm run build
+  Publish dir:      dist
+
+  Environment variables to set:
+    VITE_API_URL      = https://<your-render-server-url>
+                        (leave blank if client and server are on same domain)
+
+
+------------------------------------------------------------------------
+  PUSH NOTIFICATIONS — ONE-TIME SETUP (optional, do when ready)
+------------------------------------------------------------------------
+
+  a) Generate VAPID keys (run once locally):
+     cd "C:\Users\gmlor\Documents\Claude\Projects\Quality OpsLok\server"
+     npx web-push generate-vapid-keys
+     (Copy the two keys — do NOT commit them to git)
+
+  b) In Render dashboard -> your server service -> Environment:
+     Add these three variables:
+       VAPID_PUBLIC_KEY  = <paste public key>
+       VAPID_PRIVATE_KEY = <paste private key>
+       VAPID_EMAIL       = mailto:admin@opslok.com
+
+  c) Redeploy after setting env vars. Users will be prompted for
+     notification permission the next time they log in.
+
+
+------------------------------------------------------------------------
+  WHAT THESE COMMANDS MEAN
+------------------------------------------------------------------------
+
+  git add -A           -> tells git "include all my changes"
+  git commit -m "..."  -> saves a labeled snapshot locally
+  git push origin main -> uploads it to GitHub
+                          Render watches GitHub and automatically
+                          rebuilds your app when it sees new changes
+
+
+------------------------------------------------------------------------
+  IF YOU GET AN ERROR ON git push
+------------------------------------------------------------------------
+
+"rejected / non-fast-forward" -- someone else pushed first. Run:
+  git pull origin main
+  git push origin main
+
+"Authentication failed" -- your GitHub token may have expired.
+  In VS Code, sign out and back in to GitHub, or re-enter
+  credentials when prompted.
+
+
+------------------------------------------------------------------------
+  WHAT CHANGED IN THIS BATCH
+------------------------------------------------------------------------
+
+0. Initial scaffold — Quality OpsLok
+   Full Node/Express + React app, modeled on the Maintenance App architecture.
+
+   Server (port 3002):
+   - database.js: organizations, users, inspection_templates, inspections,
+     inspection_items, ncrs, corrective_actions, push_subscriptions, invoices
+   - routes/auth.js      — login, register-org, team CRUD, change password,
+                            org domain restriction (identical to Maintenance)
+   - routes/templates.js — CRUD for reusable inspection checklists (manager only)
+   - routes/inspections.js — create/list/get inspections; record per-item
+                              pass/fail/na results; mark passed or failed
+   - routes/ncrs.js      — auto-numbered NCRs (NCR-YYYYMM-NNN), corrective
+                            actions with status tracking
+   - routes/dashboard.js — aggregate stats: total inspections, pass rate,
+                            open NCRs, critical NCRs, recent lists
+   - routes/billing.js   — dormant Stripe stub + startTrial (same as Maintenance)
+   - routes/push.js      — VAPID key endpoint + subscription register
+   - routes/superadmin.js — platform-wide stats + org table (glorang@ only)
+   - middleware/requireSubscription.js — dormant billing gate (same as Maintenance)
+
+   Client (port 5174):
+   - Auth: ql_token / ql_user localStorage keys (separate from Maintenance mt_*)
+   - Offline: IndexedDB name QualityOpsLokOffline, sync queue with ql_token
+   - PWA: service worker, vite-plugin-pwa, manifest (Quality OpsLok)
+   - Pages: Dashboard, Inspections, InspectionDetail, Templates, NCRs,
+            NCRDetail, Team, SuperAdmin, Login, Register
+   - Nav: Dashboard · Inspections · Templates · NCRs · Team
+   - NCR page shows severity (critical/major/minor) and status filters,
+     links back to the source inspection
+   - InspectionDetail: per-item pass/fail/na buttons, raise NCR inline,
+     mark inspection passed or failed
+   - Template builder: add/remove/reorder checklist items, category tags,
+     pre-populates items when starting a new inspection from a template
+
+------------------------------------------------------------------------
