@@ -24,13 +24,22 @@ async function start() {
   const { initSchema } = require('./database');
   await initSchema();
 
-  app.use('/api/auth',        require('./routes/auth'));
-  app.use('/api/dashboard',   requireSubscription, require('./routes/dashboard'));
-  app.use('/api/templates',   requireSubscription, require('./routes/templates'));
-  app.use('/api/inspections', requireSubscription, require('./routes/inspections'));
-  app.use('/api/ncrs',        requireSubscription, require('./routes/ncrs'));
-  app.use('/api/push',        require('./routes/push'));
-  app.use('/api/superadmin',  require('./routes/superadmin'));
+  app.use('/api/auth',               require('./routes/auth'));
+  app.use('/api/dashboard',          requireSubscription, require('./routes/dashboard'));
+  app.use('/api/templates',          requireSubscription, require('./routes/templates'));
+  app.use('/api/inspections',        requireSubscription, require('./routes/inspections'));
+  app.use('/api/ncrs',               requireSubscription, require('./routes/ncrs'));
+  app.use('/api/push',               require('./routes/push'));
+  app.use('/api/superadmin',         require('./routes/superadmin'));
+
+  // ── Quality management routes ─────────────────────────────────────────────
+  app.use('/api/parts',              requireSubscription, require('./routes/parts'));
+  app.use('/api/suppliers',          requireSubscription, require('./routes/suppliers'));
+  app.use('/api/gauges',             requireSubscription, require('./routes/gauges'));
+  app.use('/api/control-plans',      requireSubscription, require('./routes/control-plans'));
+  app.use('/api/documents',          requireSubscription, require('./routes/documents'));
+  app.use('/api/inspection-orders',  requireSubscription, require('./routes/inspection-orders'));
+  app.use('/api/capas',              requireSubscription, require('./routes/capas'));
 
   if (process.env.NODE_ENV === 'production') {
     const clientBuild = path.join(__dirname, '../client/dist');

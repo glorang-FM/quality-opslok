@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality OpsLok</title>
+<style>
+  :root {
+    --primary: #1a56db;
+    --primary-dark: #1341a8;
+    --success: #057a55;
+    --success-bg: #def7ec;
+    --danger: #c81e1e;
+    --danger-bg: #fde8e8;
+    --warning: #92400e;
+    --warning-bg: #fef3c7;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --sidebar-w: 240px;
+    --header-h: 60px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-100); color: var(--gray-800); }
+
+  /* Auth */
+  .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a56db 0%, #0e3a8c 100%); }
+  .auth-card { background: #fff; border-radius: 12px; padding: 40px; width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .auth-logo { text-align: center; margin-bottom: 28px; }
+  .auth-logo h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
+  .auth-logo p { font-size: 13px; color: var(--gray-500); margin-top: 4px; }
+  .auth-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--gray-100); border-radius: 8px; padding: 4px; }
+  .auth-tab { flex: 1; padding: 8px; text-align: center; border: none; background: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--gray-500); transition: all .15s; }
+  .auth-tab.active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+  /* Layout */
+  .app { display: none; }
+  .app.visible { display: flex; }
+  .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--gray-900); color: #fff; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; }
+  .sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .sidebar-logo h2 { font-size: 16px; font-weight: 700; color: #fff; }
+  .sidebar-logo span { font-size: 11px; color: var(--gray-400); }
+  .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .08em; padding: 12px 8px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--gray-300); transition: all .15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .nav-item.active { background: var(--primary); color: #fff; }
+  .nav-item .badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; min-width: 18px; text-align: center; }
+  .sidebar-user { padding: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+  .sidebar-user-info { font-size: 13px; color: var(--gray-300); margin-bottom: 8px; }
+  .sidebar-user-info strong { display: block; color: #fff; }
+  .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+  .topbar { height: var(--header-h); background: #fff; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; padding: 0 24px; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .topbar h1 { font-size: 18px; font-weight: 600; flex: 1; }
+  .page { padding: 24px; display: none; }
+  .page.active { display: block; }
+
+  /* Components */
+  .btn { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+  .btn-secondary:hover { background: var(--gray-200); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-lg { padding: 11px 22px; font-size: 16px; }
+
+  .card { background: #fff; border-radius: 10px; border: 1px solid var(--gray-200); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 15px; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 5px; }
+  .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; transition: border .15s; }
+  .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
+  .form-row { display: grid; gap: 16px; }
+  .form-row.col-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.col-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: var(--gray-50); padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--gray-200); }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gray-50); }
+
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-success { background: var(--success-bg); color: var(--success); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger); }
+  .badge-warning { background: var(--warning-bg); color: var(--warning); }
+  .badge-gray { background: var(--gray-100); color: var(--gray-600); }
+  .badge-blue { background: #e1effe; color: #1a56db; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 20px; }
+  .stat-card .stat-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; }
+  .stat-card .stat-value { font-size: 32px; font-weight: 700; color: var(--gray-900); line-height: 1.1; margin: 6px 0 2px; }
+  .stat-card .stat-sub { font-size: 12px; color: var(--gray-500); }
+
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+  .alert-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid #f8b4b4; }
+  .alert-success { background: var(--success-bg); color: var(--success); border: 1px solid #84e1bc; }
+  .alert-info { background: #e1effe; color: #1a56db; border: 1px solid #a4cafe; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 12px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,.3); }
+  .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-size: 17px; font-weight: 600; }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-close { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 20px; line-height: 1; }
+
+  /* Inspection execution */
+  .reading-card { border: 2px solid var(--gray-200); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: border-color .15s; }
+  .reading-card.in-spec { border-color: #84e1bc; background: #f0fdf4; }
+  .reading-card.out-spec { border-color: #f8b4b4; background: #fff5f5; }
+  .reading-char-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .reading-spec { font-size: 12px; color: var(--gray-500); margin-bottom: 10px; }
+  .reading-spec span { margin-right: 12px; }
+  .reading-input-row { display: flex; align-items: center; gap: 10px; }
+  .reading-input { width: 140px; padding: 9px 12px; border: 2px solid var(--gray-300); border-radius: 6px; font-size: 18px; font-weight: 600; text-align: center; }
+  .reading-input:focus { outline: none; border-color: var(--primary); }
+  .reading-result { font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 6px; }
+  .reading-result.pass { background: var(--success-bg); color: var(--success); }
+  .reading-result.fail { background: var(--danger-bg); color: var(--danger); }
+  .reading-dev { font-size: 12px; color: var(--gray-500); }
+  .reading-notes { width: 100%; margin-top: 8px; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; }
+
+  .progress-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+  .progress-bar-fill { height: 100%; background: var(--primary); transition: width .3s; border-radius: 4px; }
+
+  /* AI extraction review */
+  .extraction-item { border: 1px solid var(--gray-200); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+  .extraction-item.approved { border-color: #84e1bc; background: #f0fdf4; }
+  .extraction-item.rejected { border-color: var(--gray-300); background: var(--gray-50); opacity: .6; }
+  .extraction-item-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .extraction-item-name { font-weight: 600; flex: 1; }
+  .confidence-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .conf-high { background: var(--success-bg); color: var(--success); }
+  .conf-medium { background: var(--warning-bg); color: var(--warning); }
+  .conf-low { background: var(--danger-bg); color: var(--danger); }
+  .extraction-specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+  .spec-field label { font-size: 10px; color: var(--gray-500); font-weight: 600; display: block; margin-bottom: 2px; }
+  .spec-field input { width: 100%; padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 13px; }
+  .extraction-actions { display: flex; gap: 6px; }
+
+  /* NCR / CAPA */
+  .why-chain { counter-reset: why; }
+  .why-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .why-item::before { counter-increment: why; content: "Why " counter(why); background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px; white-space: nowrap; margin-top: 8px; }
+
+  /* Upload zone */
+  .upload-zone { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 40px; text-align: center; cursor: pointer; transition: all .15s; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--primary); background: #eff6ff; }
+  .upload-zone input { display: none; }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-zone p { font-size: 14px; color: var(--gray-500); }
+  .upload-zone strong { color: var(--primary); }
+
+  /* Loading */
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--gray-200); border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-block { padding: 48px; text-align: center; color: var(--gray-500); }
+
+  /* Misc */
+  .empty-state { padding: 60px 24px; text-align: center; color: var(--gray-500); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state p { font-size: 15px; }
+  .page-actions { display: flex; gap: 10px; align-items: center; }
+  .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
+  .text-muted { color: var(--gray-500); font-size: 13px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .mb-2 { margin-bottom: 8px; }
+  .mb-3 { margin-bottom: 12px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>Quality OpsLok</h1>
+      <p>Production-grade quality management</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">New Organization</button>
+    </div>
+
+    <div id="loginForm">
+      <div id="loginError" class="alert alert-danger" style="display:none"></div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" class="form-control" placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="doLogin()">Sign In</button>
+    </div>
+
+    <div id="registerForm" style="display:none">
+      <div id="registerError" class="alert alert-danger" style="display:none"></div>
+      <div class="form-group">
+        <label>Organization Name</label>
+        <input type="text" id="regOrg" class="form-control" placeholder="Acme Manufacturing Co.">
+      </div>
+      <div class="form-row col-2">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="regName" class="form-control" placeholder="Jane Smith">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="jane@acme.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" class="form-control" placeholder="Min 8 characters">
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="doRegister()">Create Organization</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app" class="app">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Quality OpsLok</h2>
+      <span id="sidebarOrgName">Loading...</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <button class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard">
+        <span>📊</span> Dashboard
+      </button>
+
+      <div class="nav-section">Inspections</div>
+      <button class="nav-item" onclick="navigate('inspections')" data-page="inspections">
+        <span>🔍</span> Inspection Orders
+      </button>
+      <button class="nav-item" onclick="navigate('control-plans')" data-page="control-plans">
+        <span>📋</span> Control Plans
+      </button>
+      <button class="nav-item" onclick="navigate('documents')" data-page="documents">
+        <span>📄</span> Documents & AI Parse
+      </button>
+
+      <div class="nav-section">Quality Events</div>
+      <button class="nav-item" onclick="navigate('ncrs')" data-page="ncrs">
+        <span>⚠️</span> NCRs
+        <span class="badge" id="ncrBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="navigate('capas')" data-page="capas">
+        <span>🔧</span> CAPAs
+      </button>
+
+      <div class="nav-section">Masters</div>
+      <button class="nav-item" onclick="navigate('parts')" data-page="parts">
+        <span>⚙️</span> Parts
+      </button>
+      <button class="nav-item" onclick="navigate('suppliers')" data-page="suppliers">
+        <span>🏭</span> Suppliers
+      </button>
+      <button class="nav-item" onclick="navigate('gauges')" data-page="gauges" id="gaugesNavItem">
+        <span>📏</span> Gauges
+      </button>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-info">
+        <strong id="sidebarUserName">-</strong>
+        <span id="sidebarUserRole">-</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="width:100%" onclick="doLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="page-actions" id="pageActions"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div id="myOpenItems" style="margin-bottom:24px"></div>
+      <div class="stat-grid" id="dashStats"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><h3>Recent Inspections</h3></div>
+          <div id="recentInspections"><div class="loading-block"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Open NCRs</h3></div>
+          <div id="openNcrs"><div class="loading-block"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSPECTIONS -->
+    <div class="page" id="page-inspections">
+      <div class="card">
+        <div class="card-header">
+          <h3>Inspection Orders</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewInspectionModal()">+ New Order</button>
+        </div>
+        <div id="inspectionsList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- INSPECTION EXECUTE -->
+    <div class="page" id="page-inspect-execute">
+      <div id="executeHeader" style="margin-bottom:20px"></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+            <span class="text-muted" id="execProgress">0 / 0 readings</span>
+            <div style="flex:1">
+              <div class="progress-bar"><div class="progress-bar-fill" id="execProgressBar" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <label style="font-size:13px;font-weight:500">Sample Unit #</label>
+            <input type="number" id="sampleUnitInput" class="form-control" style="width:80px" value="1" min="1" onchange="setSampleUnit(this.value)">
+            <span class="text-muted" id="sampleUnitMax"></span>
+          </div>
+        </div>
+      </div>
+      <div id="readingsList"></div>
+      <div style="margin-top:20px;display:flex;gap:12px">
+        <button class="btn btn-secondary" onclick="navigate('inspections')">← Back</button>
+        <button class="btn btn-success btn-lg" onclick="completeInspection()" id="completeInspBtn">Complete Inspection</button>
+      </div>
+    </div>
+
+    <!-- CONTROL PLANS -->
+    <div class="page" id="page-control-plans">
+      <div class="card">
+        <div class="card-header">
+          <h3>Control Plans</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewCPModal()">+ New Control Plan</button>
+        </div>
+        <div id="controlPlansList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- CONTROL PLAN DETAIL -->
+    <div class="page" id="page-cp-detail">
+      <div id="cpDetailHeader" style="margin-bottom:20px"></div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Characteristics</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddCharModal()">+ Add Characteristic</button>
+        </div>
+        <div id="cpCharsList"></div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="page" id="page-documents">
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-header"><h3>Upload Document for AI Parsing</h3></div>
+          <div class="card-body">
+            <p class="text-muted mb-3">Upload a drawing, spec sheet, control plan, or inspection report. AI will extract inspection characteristics automatically.</p>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+              <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.csv" onchange="handleFileSelect(this)">
+              <div class="upload-icon">📄</div>
+              <p><strong>Click to upload</strong> or drag and drop</p>
+              <p style="font-size:12px;margin-top:4px">PDF, images, Excel, CSV</p>
+            </div>
+            <div id="uploadProgress" style="display:none;margin-top:16px">
+              <div class="alert alert-info" id="uploadStatus">Uploading...</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>How It Works</h3></div>
+          <div class="card-body">
+            <ol style="padding-left:20px;font-size:14px;line-height:2">
+              <li>Upload your drawing, spec, or existing control plan</li>
+              <li>AI extracts inspection characteristics with nominal/USL/LSL values</li>
+              <li>Review each extracted item — approve, edit, or reject</li>
+              <li>Approved items become characteristics on your control plan</li>
+            </ol>
+            <div class="alert alert-info mt-3">
+              Supports: Engineering drawings, Excel control plans, supplier spec sheets, inspection reports, and more.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Documents</h3></div>
+        <div id="documentsList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- EXTRACTION REVIEW -->
+    <div class="page" id="page-extraction-review">
+      <div id="extractionHeader" style="margin-bottom:20px"></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body" style="display:flex;gap:12px;align-items:center">
+          <select id="extractionTargetCP" class="form-control" style="max-width:300px">
+            <option value="">Select target control plan...</option>
+          </select>
+          <button class="btn btn-success" onclick="approveAllExtraction()">✓ Approve All High Confidence</button>
+          <button class="btn btn-primary" onclick="saveExtraction()">Save Approved Items</button>
+          <button class="btn btn-secondary" onclick="navigate('documents')">← Back</button>
+        </div>
+      </div>
+      <div id="extractionItems"></div>
+    </div>
+
+    <!-- NCRs -->
+    <div class="page" id="page-ncrs">
+      <div class="card">
+        <div class="card-header">
+          <h3>Non-Conformance Reports</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewNCRModal()">+ New NCR</button>
+        </div>
+        <div id="ncrsList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- NCR DETAIL -->
+    <div class="page" id="page-ncr-detail">
+      <div id="ncrDetailContent"></div>
+    </div>
+
+    <!-- CAPAs -->
+    <div class="page" id="page-capas">
+      <div class="card">
+        <div class="card-header"><h3>Corrective & Preventive Actions</h3></div>
+        <div id="capasList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- CAPA DETAIL -->
+    <div class="page" id="page-capa-detail">
+      <div id="capaDetailContent"></div>
+    </div>
+
+    <!-- PARTS -->
+    <div class="page" id="page-parts">
+      <div class="card">
+        <div class="card-header">
+          <h3>Parts Master</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewPartModal()">+ New Part</button>
+        </div>
+        <div id="partsList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- SUPPLIERS -->
+    <div class="page" id="page-suppliers">
+      <div class="card">
+        <div class="card-header">
+          <h3>Supplier Scorecard</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewSupplierModal()">+ New Supplier</button>
+        </div>
+        <div id="suppliersList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- GAUGES -->
+    <div class="page" id="page-gauges">
+      <div class="card">
+        <div class="card-header">
+          <h3>Gauge Calibration</h3>
+          <button class="btn btn-primary btn-sm" onclick="openNewGaugeModal()">+ New Gauge</button>
+        </div>
+        <div id="gaugesList"><div class="loading-block"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="genericModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">-</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<script>
+// ===================== STATE =====================
+const API = '/api';
+let token = localStorage.getItem('qol_token');
+let currentUser = null;
+let currentPage = 'dashboard';
+let appState = {
+  currentInspection: null,
+  currentCP: null,
+  currentNCR: null,
+  currentCapa: null,
+  currentExtraction: null,
+  readings: {},
+  sampleUnit: 1
+};
+
+// ===================== AUTH =====================
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0)===(tab==='login')));
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) return showAuthError('login', 'Please fill all fields');
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) return showAuthError('login', data.error || 'Login failed');
+    localStorage.setItem('qol_token', data.token);
+    token = data.token;
+    currentUser = data.user;
+    bootApp();
+  } catch(e) { showAuthError('login', 'Connection error. Is the server running?'); }
+}
+
+async function doRegister() {
+  const orgName = document.getElementById('regOrg').value.trim();
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  if (!orgName||!name||!email||!password) return showAuthError('register','Please fill all fields');
+  if (password.length < 8) return showAuthError('register','Password must be at least 8 characters');
+  try {
+    const res = await fetch(`${API}/auth/register`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({org_name: orgName, name, email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) return showAuthError('register', data.error || 'Registration failed');
+    localStorage.setItem('qol_token', data.token);
+    token = data.token;
+    currentUser = data.user;
+    bootApp();
+  } catch(e) { showAuthError('register', 'Connection error'); }
+}
+
+function showAuthError(form, msg) {
+  const el = document.getElementById(form === 'login' ? 'loginError' : 'registerError');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+function doLogout() {
+  localStorage.removeItem('qol_token');
+  token = null; currentUser = null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+async function bootApp() {
+  if (!token) return;
+  try {
+    const res = await fetch(`${API}/auth/me`, {headers: authHeaders()});
+    if (!res.ok) return doLogout();
+    currentUser = (await res.json()).user;
+  } catch(e) { return; }
+
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('sidebarUserName').textContent = currentUser.name || currentUser.email;
+  document.getElementById('sidebarUserRole').textContent = currentUser.role;
+  document.getElementById('sidebarOrgName').textContent = currentUser.org_name || 'Quality';
+
+  // Show/hide gauges based on org settings
+  const gaugesNav = document.getElementById('gaugesNavItem');
+  if (currentUser.org_settings && !currentUser.org_settings.gauge_tracking) {
+    gaugesNav.style.display = 'none';
+  }
+
+  navigate('dashboard');
+}
+
+function authHeaders() {
+  return {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'};
+}
+
+async function api(method, path, body) {
+  const opts = {method, headers: authHeaders()};
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// ===================== NAVIGATION =====================
+function navigate(page, param) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  currentPage = page;
+
+  const pageEl = document.getElementById(`page-${page}`);
+  if (pageEl) pageEl.classList.add('active');
+
+  const navBtn = document.querySelector(`[data-page="${page}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  const titles = {
+    'dashboard':'Dashboard','inspections':'Inspection Orders','inspect-execute':'Execute Inspection',
+    'control-plans':'Control Plans','cp-detail':'Control Plan','documents':'Documents & AI Parse',
+    'extraction-review':'AI Extraction Review','ncrs':'Non-Conformance Reports','ncr-detail':'NCR Detail',
+    'capas':'CAPAs','capa-detail':'CAPA Detail','parts':'Parts Master','suppliers':'Suppliers',
+    'gauges':'Gauge Calibration'
+  };
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+  document.getElementById('pageActions').innerHTML = '';
+
+  switch(page) {
+    case 'dashboard': loadDashboard(); break;
+    case 'inspections': loadInspections(); break;
+    case 'inspect-execute': loadExecuteInspection(param); break;
+    case 'control-plans': loadControlPlans(); break;
+    case 'cp-detail': loadCPDetail(param); break;
+    case 'documents': loadDocuments(); break;
+    case 'extraction-review': loadExtractionReview(param); break;
+    case 'ncrs': loadNCRs(); break;
+    case 'ncr-detail': loadNCRDetail(param); break;
+    case 'capas': loadCAPAs(); break;
+    case 'capa-detail': loadCAPADetail(param); break;
+    case 'parts': loadParts(); break;
+    case 'suppliers': loadSuppliers(); break;
+    case 'gauges': loadGauges(); break;
+  }
+}
+
+// ===================== DASHBOARD =====================
+async function loadDashboard() {
+  try {
+    const data = await api('GET', '/dashboard');
+
+    // My open items
+    const myItems = data.my_open_items || [];
+    const myDiv = document.getElementById('myOpenItems');
+    if (myItems.length > 0) {
+      myDiv.innerHTML = `
+        <div class="card">
+          <div class="card-header"><h3>My Open Items (${myItems.length})</h3></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Type</th><th>Reference</th><th>Part</th><th>Status</th><th>Due/Created</th><th></th></tr></thead>
+            <tbody>${myItems.map(item => `
+              <tr>
+                <td><span class="badge badge-blue">${item.item_type}</span></td>
+                <td>${item.reference||'-'}</td>
+                <td>${item.part_number||'-'}</td>
+                <td><span class="badge ${item.status==='open'?'badge-warning':'badge-gray'}">${item.status}</span></td>
+                <td class="text-muted">${fmtDate(item.created_at)}</td>
+                <td><button class="btn btn-secondary btn-sm" onclick="openItem('${item.item_type}','${item.item_id}')">Open →</button></td>
+              </tr>`).join('')}
+            </tbody></table>
+          </div>
+        </div>`;
+    } else {
+      myDiv.innerHTML = `<div class="alert alert-success">✓ No open items assigned to you</div>`;
+    }
+
+    // Stats
+    const stats = data.stats || {};
+    document.getElementById('dashStats').innerHTML = `
+      ${statCard('Open Inspections', stats.open_inspections||0, 'Active orders', 'blue')}
+      ${statCard('Open NCRs', stats.open_ncrs||0, 'Need attention', stats.open_ncrs>0?'red':'green')}
+      ${statCard('Open CAPAs', stats.open_capas||0, 'In progress', 'yellow')}
+      ${statCard('Pass Rate (30d)', ((stats.pass_rate_30d||0)*100).toFixed(1)+'%', 'From actual readings', 'green')}
+    `;
+
+    // Recent inspections
+    const recent = data.recent_inspections || [];
+    document.getElementById('recentInspections').innerHTML = recent.length ? `
+      <div class="table-wrap"><table><thead><tr><th>Order</th><th>Part</th><th>Type</th><th>Result</th></tr></thead>
+      <tbody>${recent.map(i=>`<tr>
+        <td><a href="#" onclick="navigate('inspect-execute','${i.id}')">${i.order_number}</a></td>
+        <td>${i.part_number}</td>
+        <td>${i.inspection_type}</td>
+        <td>${resultBadge(i.result,i.status)}</td>
+      </tr>`).join('')}</tbody></table></div>` :
+      `<div class="empty-state"><div class="empty-icon">📋</div><p>No inspections yet</p></div>`;
+
+    // Open NCRs
+    const ncrs = data.open_ncrs || [];
+    document.getElementById('openNcrs').innerHTML = ncrs.length ? `
+      <div class="table-wrap"><table><thead><tr><th>NCR#</th><th>Part</th><th>Severity</th></tr></thead>
+      <tbody>${ncrs.map(n=>`<tr>
+        <td><a href="#" onclick="navigate('ncr-detail','${n.id}')">${n.ncr_number}</a></td>
+        <td>${n.part_number||'-'}</td>
+        <td>${severityBadge(n.severity)}</td>
+      </tr>`).join('')}</tbody></table></div>` :
+      `<div class="empty-state"><div class="empty-icon">✅</div><p>No open NCRs</p></div>`;
+
+    // NCR badge
+    if (stats.open_ncrs > 0) {
+      document.getElementById('ncrBadge').textContent = stats.open_ncrs;
+      document.getElementById('ncrBadge').style.display = 'inline';
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function statCard(label, value, sub, color) {
+  const colors = {blue:'#1a56db',red:'#c81e1e',green:'#057a55',yellow:'#92400e'};
+  return `<div class="stat-card">
+    <div class="stat-label">${label}</div>
+    <div class="stat-value" style="color:${colors[color]||colors.blue}">${value}</div>
+    <div class="stat-sub">${sub}</div>
+  </div>`;
+}
+
+function openItem(type, id) {
+  if (type==='inspection') navigate('inspect-execute', id);
+  else if (type==='ncr') navigate('ncr-detail', id);
+  else if (type==='capa') navigate('capa-detail', id);
+}
+
+// ===================== INSPECTIONS =====================
+async function loadInspections() {
+  try {
+    const data = await api('GET', '/inspections');
+    const items = data.inspections || [];
+    document.getElementById('inspectionsList').innerHTML = items.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Order #</th><th>Part</th><th>Type</th><th>Lot Size</th><th>Sample</th><th>Status</th><th>Result</th><th>Assigned To</th><th></th></tr></thead>
+        <tbody>${items.map(i=>`<tr>
+          <td><strong>${i.order_number}</strong></td>
+          <td>${i.part_number} r${i.revision}</td>
+          <td><span class="badge badge-blue">${i.inspection_type}</span></td>
+          <td>${i.lot_size||'-'}</td>
+          <td>${i.sample_size||'-'}</td>
+          <td>${statusBadge(i.status)}</td>
+          <td>${resultBadge(i.result,i.status)}</td>
+          <td class="text-muted">${i.assigned_name||'-'}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="navigate('inspect-execute','${i.id}')">
+            ${i.status==='complete'?'View':'Execute →'}
+          </button></td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">🔍</div><p>No inspection orders. Create one to get started.</p></div>`;
+  } catch(e) { showError('inspectionsList', e.message); }
+}
+
+async function loadExecuteInspection(id) {
+  if (!id) return;
+  appState.currentInspection = id;
+  appState.readings = {};
+  appState.sampleUnit = 1;
+  try {
+    const data = await api('GET', `/inspections/${id}`);
+    const insp = data.inspection;
+    const chars = data.characteristics || [];
+
+    document.getElementById('executeHeader').innerHTML = `
+      <div class="card">
+        <div class="card-body" style="display:flex;gap:20px;flex-wrap:wrap">
+          <div><div class="text-muted">Order</div><strong>${insp.order_number}</strong></div>
+          <div><div class="text-muted">Part</div><strong>${insp.part_number} r${insp.revision}</strong></div>
+          <div><div class="text-muted">Type</div><strong>${insp.inspection_type}</strong></div>
+          <div><div class="text-muted">Lot Size</div><strong>${insp.lot_size||'-'}</strong></div>
+          <div><div class="text-muted">Sample Size</div><strong>${insp.sample_size||'-'}</strong></div>
+          <div><div class="text-muted">Status</div>${statusBadge(insp.status)}</div>
+        </div>
+      </div>`;
+
+    document.getElementById('sampleUnitMax').textContent = `of ${insp.sample_size||1} units`;
+    document.getElementById('completeInspBtn').disabled = insp.status === 'complete';
+
+    renderReadings(chars, insp);
+  } catch(e) { showError('executeHeader', e.message); }
+}
+
+function renderReadings(chars, insp) {
+  const list = document.getElementById('readingsList');
+  list.innerHTML = chars.map(c => {
+    const key = `${c.id}_${appState.sampleUnit}`;
+    const existing = appState.readings[key];
+    return `
+      <div class="reading-card ${existing ? (existing.in_spec?'in-spec':'out-spec') : ''}" id="rc_${c.id}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="reading-char-name">${c.name}</div>
+          ${c.critical ? '<span class="badge badge-danger">CRITICAL</span>' : ''}
+          <span class="badge badge-gray">${c.char_type||'variable'}</span>
+        </div>
+        <div class="reading-spec">
+          ${c.nominal!=null?`<span>Nominal: <strong>${c.nominal} ${c.unit||''}</strong></span>`:''}
+          ${c.lsl!=null?`<span>LSL: <strong>${c.lsl}</strong></span>`:''}
+          ${c.usl!=null?`<span>USL: <strong>${c.usl}</strong></span>`:''}
+          ${c.gauge_name?`<span>Gauge: ${c.gauge_name}</span>`:''}
+        </div>
+        <div class="reading-input-row">
+          ${c.char_type === 'attribute' ?
+            `<select class="form-control" style="width:160px" id="val_${c.id}" onchange="updateReading('${c.id}', this.value, ${JSON.stringify(c)})">
+              <option value="">-- Select --</option>
+              <option value="pass">Pass</option>
+              <option value="fail">Fail</option>
+            </select>` :
+            `<input type="number" class="reading-input" id="val_${c.id}" placeholder="0.000"
+              value="${existing?existing.actual_value:''}"
+              step="0.001" onchange="updateReading('${c.id}', this.value, ${JSON.stringify(c).replace(/"/g,'&quot;')})">`
+          }
+          <div id="res_${c.id}" class="reading-result" style="display:${existing?'flex':'none'}">
+            ${existing ? (existing.in_spec ? '✓ IN SPEC' : '✗ OUT OF SPEC') : ''}
+          </div>
+          ${c.nominal!=null ? `<div id="dev_${c.id}" class="reading-dev">${existing&&existing.deviation!=null?'Dev: '+existing.deviation.toFixed(4):''}</div>` : ''}
+        </div>
+        <textarea class="reading-notes" id="notes_${c.id}" placeholder="Notes${c.char_type!=='attribute'&&existing&&!existing.in_spec?' (required for out-of-spec)':''}"
+          style="display:${existing&&!existing.in_spec?'block':'none'}">${existing?existing.notes||'':''}</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="submitReading('${c.id}', ${JSON.stringify(insp).replace(/"/g,'&quot;')})">Record</button>
+      </div>`;
+  }).join('');
+  updateProgress(chars);
+}
+
+function updateReading(charId, value, char) {
+  if (!value) return;
+  const key = `${charId}_${appState.sampleUnit}`;
+  let inSpec = true;
+  let deviation = null;
+
+  if (char.char_type === 'attribute') {
+    inSpec = value === 'pass';
+  } else {
+    const v = parseFloat(value);
+    if (char.usl != null && v > char.usl) inSpec = false;
+    if (char.lsl != null && v < char.lsl) inSpec = false;
+    if (char.nominal != null) deviation = v - char.nominal;
+  }
+
+  appState.readings[key] = {actual_value: value, in_spec: inSpec, deviation, notes: ''};
+
+  const card = document.getElementById(`rc_${charId}`);
+  card.className = `reading-card ${inSpec ? 'in-spec' : 'out-spec'}`;
+
+  const res = document.getElementById(`res_${charId}`);
+  res.style.display = 'flex';
+  res.className = `reading-result ${inSpec?'pass':'fail'}`;
+  res.textContent = inSpec ? '✓ IN SPEC' : '✗ OUT OF SPEC';
+
+  const dev = document.getElementById(`dev_${charId}`);
+  if (dev && deviation != null) dev.textContent = `Dev: ${deviation.toFixed(4)}`;
+
+  const notesEl = document.getElementById(`notes_${charId}`);
+  if (notesEl) notesEl.style.display = !inSpec ? 'block' : 'none';
+}
+
+async function submitReading(charId, insp) {
+  const key = `${charId}_${appState.sampleUnit}`;
+  const r = appState.readings[key];
+  if (!r) return alert('Please enter a value first');
+
+  const notesEl = document.getElementById(`notes_${charId}`);
+  const notes = notesEl ? notesEl.value : '';
+  if (!r.in_spec && !notes.trim()) return alert('Notes are required for out-of-spec readings');
+
+  try {
+    await api('POST', `/inspections/${appState.currentInspection}/readings`, {
+      characteristic_id: charId,
+      sample_number: appState.sampleUnit,
+      actual_value: r.actual_value,
+      notes
+    });
+    appState.readings[key].saved = true;
+    document.getElementById(`rc_${charId}`).querySelector('.btn').textContent = '✓ Saved';
+    document.getElementById(`rc_${charId}`).querySelector('.btn').disabled = true;
+  } catch(e) { alert('Error saving reading: ' + e.message); }
+}
+
+function setSampleUnit(val) {
+  appState.sampleUnit = parseInt(val) || 1;
+}
+
+function updateProgress(chars) {
+  const total = chars.length;
+  const done = Object.values(appState.readings).filter(r=>r.saved).length;
+  document.getElementById('execProgress').textContent = `${done} / ${total} readings`;
+  document.getElementById('execProgressBar').style.width = `${total>0?(done/total*100):0}%`;
+}
+
+async function completeInspection() {
+  if (!confirm('Mark this inspection as complete?')) return;
+  try {
+    await api('POST', `/inspections/${appState.currentInspection}/complete`);
+    alert('Inspection completed!');
+    navigate('inspections');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ===================== CONTROL PLANS =====================
+async function loadControlPlans() {
+  try {
+    const data = await api('GET', '/control-plans');
+    const cps = data.control_plans || [];
+    document.getElementById('controlPlansList').innerHTML = cps.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Part</th><th>Rev</th><th>Inspection Type</th><th>Status</th><th>Chars</th><th>Created</th><th></th></tr></thead>
+        <tbody>${cps.map(cp=>`<tr>
+          <td><strong>${cp.part_number}</strong></td>
+          <td>${cp.revision}</td>
+          <td><span class="badge badge-blue">${cp.inspection_type}</span></td>
+          <td>${statusBadge(cp.status)}</td>
+          <td>${cp.characteristic_count||0}</td>
+          <td class="text-muted">${fmtDate(cp.created_at)}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="navigate('cp-detail','${cp.id}')">Edit</button>
+            ${cp.status==='draft'?`<button class="btn btn-success btn-sm" onclick="approveCP('${cp.id}')">Approve</button>`:''}
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">📋</div><p>No control plans. Upload a document or create one manually.</p></div>`;
+  } catch(e) { showError('controlPlansList', e.message); }
+}
+
+async function loadCPDetail(id) {
+  if (!id) return;
+  appState.currentCP = id;
+  try {
+    const data = await api('GET', `/control-plans/${id}`);
+    const cp = data.control_plan;
+    const chars = data.characteristics || [];
+
+    document.getElementById('cpDetailHeader').innerHTML = `
+      <div class="card">
+        <div class="card-body" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+          <div><div class="text-muted">Part</div><strong>${cp.part_number} r${cp.revision}</strong></div>
+          <div><div class="text-muted">Type</div><strong>${cp.inspection_type}</strong></div>
+          <div><div class="text-muted">Status</div>${statusBadge(cp.status)}</div>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('control-plans')">← Back</button>
+        </div>
+      </div>`;
+
+    document.getElementById('cpCharsList').innerHTML = chars.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Characteristic</th><th>Type</th><th>Nominal</th><th>LSL</th><th>USL</th><th>Unit</th><th>Gauge</th><th>Critical</th><th>Source</th></tr></thead>
+        <tbody>${chars.map(c=>`<tr>
+          <td><strong>${c.name}</strong></td>
+          <td><span class="badge badge-gray">${c.char_type}</span></td>
+          <td>${c.nominal!=null?c.nominal:'-'}</td>
+          <td>${c.lsl!=null?c.lsl:'-'}</td>
+          <td>${c.usl!=null?c.usl:'-'}</td>
+          <td>${c.unit||'-'}</td>
+          <td>${c.gauge_name||'-'}</td>
+          <td>${c.critical?'<span class="badge badge-danger">Yes</span>':'-'}</td>
+          <td>${c.source_document_id?'<span class="badge badge-blue">AI</span>':'Manual'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">📐</div><p>No characteristics. Add manually or import from a document.</p></div>`;
+  } catch(e) { showError('cpCharsList', e.message); }
+}
+
+async function approveCP(id) {
+  if (!confirm('Approve this control plan? Any existing active plan for this part/type will be superseded.')) return;
+  try {
+    await api('POST', `/control-plans/${id}/approve`);
+    loadControlPlans();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ===================== DOCUMENTS =====================
+async function loadDocuments() {
+  try {
+    const data = await api('GET', '/documents');
+    const docs = data.documents || [];
+    document.getElementById('documentsList').innerHTML = docs.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Filename</th><th>Part</th><th>Parse Status</th><th>Uploaded</th><th></th></tr></thead>
+        <tbody>${docs.map(d=>`<tr>
+          <td>${d.filename||d.file_url||'-'}</td>
+          <td>${d.part_number||'-'}</td>
+          <td>${parseStatusBadge(d.parse_status)}</td>
+          <td class="text-muted">${fmtDate(d.created_at)}</td>
+          <td>
+            ${d.parse_status==='complete'?`<button class="btn btn-primary btn-sm" onclick="navigate('extraction-review','${d.id}')">Review AI Extraction →</button>`:''}
+            ${d.parse_status==='processing'?'<span class="text-muted">Parsing...</span>':''}
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">📄</div><p>No documents uploaded yet.</p></div>`;
+  } catch(e) { showError('documentsList', e.message); }
+}
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]);
+}
+function handleFileSelect(input) { if (input.files[0]) uploadFile(input.files[0]); }
+
+async function uploadFile(file) {
+  const progressDiv = document.getElementById('uploadProgress');
+  const statusEl = document.getElementById('uploadStatus');
+  progressDiv.style.display = 'block';
+  statusEl.className = 'alert alert-info';
+  statusEl.textContent = `Uploading ${file.name}...`;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API}/documents/upload`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${token}`},
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+    statusEl.textContent = 'Upload complete! AI is parsing your document...';
+    pollDocumentStatus(data.document_id, statusEl);
+  } catch(e) {
+    statusEl.className = 'alert alert-danger';
+    statusEl.textContent = 'Upload error: ' + e.message;
+  }
+}
+
+async function pollDocumentStatus(docId, statusEl) {
+  const poll = setInterval(async () => {
+    try {
+      const data = await api('GET', `/documents/${docId}`);
+      const doc = data.document;
+      if (doc.parse_status === 'complete') {
+        clearInterval(poll);
+        statusEl.className = 'alert alert-success';
+        statusEl.innerHTML = `✓ AI parsing complete! <button class="btn btn-primary btn-sm" onclick="navigate('extraction-review','${docId}')">Review Extraction →</button>`;
+        loadDocuments();
+      } else if (doc.parse_status === 'failed') {
+        clearInterval(poll);
+        statusEl.className = 'alert alert-danger';
+        statusEl.textContent = 'AI parsing failed. You can still create characteristics manually.';
+      }
+    } catch(e) { clearInterval(poll); }
+  }, 3000);
+}
+
+// ===================== EXTRACTION REVIEW =====================
+async function loadExtractionReview(docId) {
+  if (!docId) return;
+  appState.currentExtraction = docId;
+  try {
+    // Load control plans for target selector
+    const cpData = await api('GET', '/control-plans');
+    const cpSelect = document.getElementById('extractionTargetCP');
+    cpSelect.innerHTML = '<option value="">Select target control plan...</option>' +
+      (cpData.control_plans||[]).map(cp=>`<option value="${cp.id}">${cp.part_number} r${cp.revision} - ${cp.inspection_type}</option>`).join('');
+
+    const data = await api('GET', `/documents/${docId}/extraction`);
+    const extraction = data.extraction;
+    const items = data.items || [];
+
+    document.getElementById('extractionHeader').innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <strong>Document:</strong> ${data.document?.filename||docId} &nbsp;|&nbsp;
+          <strong>AI Model:</strong> ${extraction?.ai_model||'-'} &nbsp;|&nbsp;
+          <strong>Items Found:</strong> ${items.length}
+          ${extraction?.raw_ai_output?.part_number ? ` &nbsp;|&nbsp; <strong>Part #:</strong> ${extraction.raw_ai_output.part_number}` : ''}
+          ${extraction?.raw_ai_output?.document_type ? ` &nbsp;|&nbsp; <strong>Doc Type:</strong> ${extraction.raw_ai_output.document_type}` : ''}
+        </div>
+      </div>`;
+
+    document.getElementById('extractionItems').innerHTML = items.map(item => `
+      <div class="extraction-item" id="ei_${item.id}">
+        <div class="extraction-item-header">
+          <div class="extraction-item-name">${item.name}</div>
+          <span class="confidence-badge conf-${item.ai_confidence}">${item.ai_confidence} confidence</span>
+          ${item.critical ? '<span class="badge badge-danger">CRITICAL</span>' : ''}
+          <span class="badge badge-gray">${item.char_type||'variable'}</span>
+        </div>
+        ${item.ai_notes ? `<div class="text-muted mb-2" style="font-size:12px">AI note: ${item.ai_notes}</div>` : ''}
+        <div class="extraction-specs">
+          <div class="spec-field">
+            <label>Nominal</label>
+            <input type="number" id="nom_${item.id}" value="${item.nominal||''}" step="0.001" placeholder="-">
+          </div>
+          <div class="spec-field">
+            <label>LSL</label>
+            <input type="number" id="lsl_${item.id}" value="${item.lsl||''}" step="0.001" placeholder="-">
+          </div>
+          <div class="spec-field">
+            <label>USL</label>
+            <input type="number" id="usl_${item.id}" value="${item.usl||''}" step="0.001" placeholder="-">
+          </div>
+          <div class="spec-field">
+            <label>Unit</label>
+            <input type="text" id="unit_${item.id}" value="${item.unit||''}" placeholder="mm, in...">
+          </div>
+        </div>
+        <div class="extraction-actions">
+          <button class="btn btn-success btn-sm" onclick="approveExtractionItem('${item.id}')">✓ Approve</button>
+          <button class="btn btn-secondary btn-sm" onclick="rejectExtractionItem('${item.id}')">✗ Reject</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { showError('extractionItems', e.message); }
+}
+
+function approveExtractionItem(itemId) {
+  const el = document.getElementById(`ei_${itemId}`);
+  el.classList.add('approved');
+  el.dataset.approved = 'true';
+}
+
+function rejectExtractionItem(itemId) {
+  const el = document.getElementById(`ei_${itemId}`);
+  el.classList.add('rejected');
+  el.dataset.approved = 'false';
+}
+
+function approveAllExtraction() {
+  document.querySelectorAll('.extraction-item').forEach(el => {
+    if (!el.classList.contains('rejected') && el.querySelector('.confidence-badge.conf-high')) {
+      el.classList.add('approved');
+      el.dataset.approved = 'true';
+    }
+  });
+}
+
+async function saveExtraction() {
+  const cpId = document.getElementById('extractionTargetCP').value;
+  if (!cpId) return alert('Please select a target control plan');
+
+  const items = [];
+  document.querySelectorAll('.extraction-item[data-approved="true"]').forEach(el => {
+    const id = el.id.replace('ei_','');
+    items.push({
+      item_id: id,
+      nominal: parseFloat(document.getElementById(`nom_${id}`)?.value)||null,
+      lsl: parseFloat(document.getElementById(`lsl_${id}`)?.value)||null,
+      usl: parseFloat(document.getElementById(`usl_${id}`)?.value)||null,
+      unit: document.getElementById(`unit_${id}`)?.value||null,
+    });
+  });
+
+  if (!items.length) return alert('No items approved. Click ✓ Approve on items to include.');
+
+  try {
+    await api('POST', `/documents/${appState.currentExtraction}/extraction/approve`, {
+      control_plan_id: cpId,
+      items
+    });
+    alert(`${items.length} characteristics added to control plan!`);
+    navigate('control-plans');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ===================== NCRs =====================
+async function loadNCRs() {
+  try {
+    const data = await api('GET', '/ncrs');
+    const ncrs = data.ncrs || [];
+    document.getElementById('ncrsList').innerHTML = ncrs.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>NCR #</th><th>Part</th><th>Severity</th><th>Disposition</th><th>Status</th><th>Assigned</th><th>Created</th><th></th></tr></thead>
+        <tbody>${ncrs.map(n=>`<tr>
+          <td><strong>${n.ncr_number}</strong></td>
+          <td>${n.part_number||'-'}</td>
+          <td>${severityBadge(n.severity)}</td>
+          <td>${n.disposition||'Pending'}</td>
+          <td>${statusBadge(n.status)}</td>
+          <td class="text-muted">${n.assigned_name||'-'}</td>
+          <td class="text-muted">${fmtDate(n.created_at)}</td>
+          <td><button class="btn btn-secondary btn-sm" onclick="navigate('ncr-detail','${n.id}')">Details →</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">✅</div><p>No NCRs found.</p></div>`;
+  } catch(e) { showError('ncrsList', e.message); }
+}
+
+async function loadNCRDetail(id) {
+  if (!id) return;
+  appState.currentNCR = id;
+  try {
+    const data = await api('GET', `/ncrs/${id}`);
+    const ncr = data.ncr;
+    const readings = data.readings || [];
+
+    document.getElementById('ncrDetailContent').innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+        <button class="btn btn-secondary" onclick="navigate('ncrs')">← Back</button>
+        <h2>${ncr.ncr_number}</h2>
+        ${severityBadge(ncr.severity)}
+        ${statusBadge(ncr.status)}
+      </div>
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-header"><h3>NCR Details</h3></div>
+          <div class="card-body">
+            <div class="form-row col-2">
+              <div class="form-group">
+                <label>Description</label>
+                <textarea class="form-control" rows="3">${ncr.description||''}</textarea>
+              </div>
+              <div class="form-group">
+                <label>Disposition</label>
+                <select class="form-control">
+                  ${['pending','use_as_is','rework','scrap','return_to_vendor'].map(d=>
+                    `<option ${ncr.disposition===d?'selected':''}>${d}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="updateNCR('${id}')">Save Changes</button>
+            ${!ncr.capa_id ? `<button class="btn btn-secondary" style="margin-left:8px" onclick="createCAPAFromNCR('${id}')">+ Create CAPA</button>` :
+              `<button class="btn btn-secondary" style="margin-left:8px" onclick="navigate('capa-detail','${ncr.capa_id}')">View CAPA →</button>`}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Out-of-Spec Readings (${readings.length})</h3></div>
+          <div class="card-body" style="padding:0">
+            ${readings.length ? `
+              <table><thead><tr><th>Characteristic</th><th>Nominal</th><th>Actual</th><th>Deviation</th><th>USL</th><th>LSL</th></tr></thead>
+              <tbody>${readings.map(r=>`<tr>
+                <td><strong>${r.characteristic_name}</strong></td>
+                <td>${r.nominal!=null?r.nominal:'-'} ${r.unit||''}</td>
+                <td style="color:var(--danger);font-weight:700">${r.actual_value} ${r.unit||''}</td>
+                <td style="color:var(--danger)">${r.deviation!=null?r.deviation.toFixed(4):'-'}</td>
+                <td>${r.usl!=null?r.usl:'-'}</td>
+                <td>${r.lsl!=null?r.lsl:'-'}</td>
+              </tr>`).join('')}</tbody></table>` :
+              '<div class="empty-state"><p>No linked readings</p></div>'}
+          </div>
+        </div>
+      </div>`;
+  } catch(e) { showError('ncrDetailContent', e.message); }
+}
+
+// ===================== CAPAs =====================
+async function loadCAPAs() {
+  try {
+    const data = await api('GET', '/capas');
+    const capas = data.capas || [];
+    document.getElementById('capasList').innerHTML = capas.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>CAPA #</th><th>NCR</th><th>Status</th><th>Root Cause</th><th>Due</th><th></th></tr></thead>
+        <tbody>${capas.map(c=>`<tr>
+          <td><strong>CAPA-${c.id.slice(-6).toUpperCase()}</strong></td>
+          <td>${c.ncr_number||'-'}</td>
+          <td>${statusBadge(c.status)}</td>
+          <td class="text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.why_5||c.why_4||c.why_3||'-'}</td>
+          <td>${c.effectiveness_date?fmtDate(c.effectiveness_date):'-'}</td>
+          <td><button class="btn btn-secondary btn-sm" onclick="navigate('capa-detail','${c.id}')">Details →</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">🔧</div><p>No CAPAs found.</p></div>`;
+  } catch(e) { showError('capasList', e.message); }
+}
+
+async function loadCAPADetail(id) {
+  if (!id) return;
+  appState.currentCapa = id;
+  try {
+    const data = await api('GET', `/capas/${id}`);
+    const capa = data.capa;
+
+    document.getElementById('capaDetailContent').innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center">
+        <button class="btn btn-secondary" onclick="navigate('capas')">← Back</button>
+        <h2>CAPA-${id.slice(-6).toUpperCase()}</h2>
+        ${statusBadge(capa.status)}
+        <span class="text-muted">NCR: ${capa.ncr_number||'-'}</span>
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><h3>Immediate Action</h3></div>
+        <div class="card-body">
+          <textarea class="form-control" id="capaImmediate" rows="3">${capa.immediate_action||''}</textarea>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><h3>5-Why Root Cause Analysis</h3></div>
+        <div class="card-body">
+          <div class="why-chain">
+            ${[1,2,3,4,5].map(n=>`
+              <div class="why-item">
+                <textarea class="form-control" id="why${n}" rows="2" placeholder="Why #${n}...">${capa['why_'+n]||''}</textarea>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><h3>Corrective Action & Verification</h3></div>
+        <div class="card-body">
+          <div class="form-row col-2">
+            <div class="form-group">
+              <label>Corrective Action</label>
+              <textarea class="form-control" id="capaCorrectiveAction" rows="4">${capa.corrective_action||''}</textarea>
+            </div>
+            <div class="form-group">
+              <label>Effectiveness Criteria</label>
+              <textarea class="form-control" id="capaEffectCriteria" rows="4">${capa.effectiveness_criteria||''}</textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Effectiveness Verification Date</label>
+            <input type="date" class="form-control" id="capaEffectDate" value="${capa.effectiveness_date||''}" style="max-width:200px">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="saveCAPADetail('${id}')">Save CAPA</button>
+        ${capa.status!=='closed'?`<button class="btn btn-success" onclick="closeCAPADetail('${id}')">Mark Effective & Close</button>`:''}
+      </div>`;
+  } catch(e) { showError('capaDetailContent', e.message); }
+}
+
+async function saveCAPADetail(id) {
+  try {
+    await api('PATCH', `/capas/${id}`, {
+      immediate_action: document.getElementById('capaImmediate').value,
+      why_1: document.getElementById('why1').value,
+      why_2: document.getElementById('why2').value,
+      why_3: document.getElementById('why3').value,
+      why_4: document.getElementById('why4').value,
+      why_5: document.getElementById('why5').value,
+      corrective_action: document.getElementById('capaCorrectiveAction').value,
+      effectiveness_criteria: document.getElementById('capaEffectCriteria').value,
+      effectiveness_date: document.getElementById('capaEffectDate').value||null,
+    });
+    alert('CAPA saved!');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function closeCAPADetail(id) {
+  await saveCAPADetail(id);
+  try {
+    await api('POST', `/capas/${id}/close`);
+    loadCAPADetail(id);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ===================== PARTS =====================
+async function loadParts() {
+  try {
+    const data = await api('GET', '/parts');
+    const parts = data.parts || [];
+    document.getElementById('partsList').innerHTML = parts.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Part Number</th><th>Description</th><th>Revision</th><th>Created</th></tr></thead>
+        <tbody>${parts.map(p=>`<tr>
+          <td><strong>${p.part_number}</strong></td>
+          <td>${p.description||'-'}</td>
+          <td>${p.revision||'-'}</td>
+          <td class="text-muted">${fmtDate(p.created_at)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">⚙️</div><p>No parts. Add parts to start creating control plans.</p></div>`;
+  } catch(e) { showError('partsList', e.message); }
+}
+
+// ===================== SUPPLIERS =====================
+async function loadSuppliers() {
+  try {
+    const data = await api('GET', '/suppliers/scorecard');
+    const sups = data.suppliers || [];
+    document.getElementById('suppliersList').innerHTML = sups.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Supplier</th><th>Code</th><th>Inspections</th><th>Pass Rate</th><th>In-Spec Rate</th><th>Rating</th></tr></thead>
+        <tbody>${sups.map(s=>`<tr>
+          <td><strong>${s.name}</strong></td>
+          <td class="text-muted">${s.code||'-'}</td>
+          <td>${s.total_inspections||0}</td>
+          <td>${s.pass_rate_pct!=null?(s.pass_rate_pct.toFixed(1)+'%'):'-'}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="progress-bar" style="width:80px;height:6px">
+                <div class="progress-bar-fill" style="width:${s.in_spec_rate_pct||0}%;background:${(s.in_spec_rate_pct||0)>=95?'var(--success)':(s.in_spec_rate_pct||0)>=80?'#f59e0b':'var(--danger)'}"></div>
+              </div>
+              <span>${s.in_spec_rate_pct!=null?(s.in_spec_rate_pct.toFixed(1)+'%'):'-'}</span>
+            </div>
+          </td>
+          <td>${supplierRatingBadge(s.in_spec_rate_pct)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">🏭</div><p>No suppliers. Scores are computed automatically from inspection readings.</p></div>`;
+  } catch(e) { showError('suppliersList', e.message); }
+}
+
+function supplierRatingBadge(rate) {
+  if (rate == null) return '<span class="badge badge-gray">No Data</span>';
+  if (rate >= 95) return '<span class="badge badge-success">Preferred</span>';
+  if (rate >= 80) return '<span class="badge badge-warning">Conditional</span>';
+  return '<span class="badge badge-danger">At Risk</span>';
+}
+
+// ===================== GAUGES =====================
+async function loadGauges() {
+  try {
+    const data = await api('GET', '/gauges');
+    const gauges = data.gauges || [];
+    document.getElementById('gaugesList').innerHTML = gauges.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Gauge Name</th><th>Type</th><th>Serial #</th><th>Cal Due</th><th>Status</th></tr></thead>
+        <tbody>${gauges.map(g=>`<tr>
+          <td><strong>${g.name}</strong></td>
+          <td>${g.type||'-'}</td>
+          <td class="text-muted">${g.serial_number||'-'}</td>
+          <td style="color:${isOverdue(g.calibration_due)?'var(--danger)':'inherit'}">${g.calibration_due?fmtDate(g.calibration_due):'-'}</td>
+          <td>${gaugeStatusBadge(g.status, g.calibration_due)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>` :
+      `<div class="empty-state"><div class="empty-icon">📏</div><p>No gauges registered.</p></div>`;
+  } catch(e) { showError('gaugesList', e.message); }
+}
+
+function isOverdue(dateStr) {
+  if (!dateStr) return false;
+  return new Date(dateStr) < new Date();
+}
+
+function gaugeStatusBadge(status, calDue) {
+  if (status === 'retired') return '<span class="badge badge-gray">Retired</span>';
+  if (status === 'out_for_cal') return '<span class="badge badge-blue">Out for Cal</span>';
+  if (isOverdue(calDue) || status === 'overdue') return '<span class="badge badge-danger">⚠ Overdue</span>';
+  return '<span class="badge badge-success">Current</span>';
+}
+
+// ===================== MODALS =====================
+function openModal(title, bodyHtml, footerHtml) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFooter').innerHTML = footerHtml || '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>';
+  document.getElementById('genericModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('genericModal').classList.remove('open');
+}
+
+function openNewInspectionModal() {
+  openModal('New Inspection Order', `
+    <div class="form-group"><label>Part</label>
+      <select id="mPart" class="form-control"><option value="">Loading...</option></select></div>
+    <div class="form-group"><label>Inspection Type</label>
+      <select id="mType" class="form-control">
+        <option value="incoming">Incoming</option>
+        <option value="inprocess">In-Process</option>
+        <option value="preshipment">Pre-Shipment</option>
+        <option value="final">Final</option>
+      </select></div>
+    <div class="form-row col-2">
+      <div class="form-group"><label>Lot Size</label><input type="number" id="mLot" class="form-control" placeholder="1000"></div>
+      <div class="form-group"><label>Sample Size (auto-AQL)</label><input type="number" id="mSample" class="form-control" placeholder="Auto" readonly></div>
+    </div>
+    <div class="form-group"><label>Supplier (optional)</label>
+      <select id="mSupplier" class="form-control"><option value="">None</option></select></div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="createInspection()">Create Order</button>
+  `);
+  loadModalParts(); loadModalSuppliers();
+  document.getElementById('mLot').addEventListener('input', autoAQL);
+}
+
+async function loadModalParts() {
+  try {
+    const data = await api('GET', '/parts');
+    const sel = document.getElementById('mPart');
+    if (!sel) return;
+    sel.innerHTML = (data.parts||[]).map(p=>`<option value="${p.id}">${p.part_number} r${p.revision}</option>`).join('') || '<option value="">No parts</option>';
+  } catch(e) {}
+}
+
+async function loadModalSuppliers() {
+  try {
+    const data = await api('GET', '/suppliers');
+    const sel = document.getElementById('mSupplier');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">None</option>' + (data.suppliers||[]).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  } catch(e) {}
+}
+
+function autoAQL() {
+  const lot = parseInt(document.getElementById('mLot')?.value)||0;
+  const sample = document.getElementById('mSample');
+  if (!sample) return;
+  // AQL 1.0 lookup
+  const tbl = [[2,2],[8,3],[15,5],[25,8],[50,13],[90,20],[150,32],[280,50],[500,80],[1200,125],[3200,200],[10000,315],[35000,500],[150000,800],[500001,1250]];
+  for (const [max, n] of tbl) { if (lot <= max) { sample.value = n; return; } }
+  sample.value = 1250;
+}
+
+async function createInspection() {
+  const partId = document.getElementById('mPart').value;
+  const type = document.getElementById('mType').value;
+  const lotSize = parseInt(document.getElementById('mLot').value)||null;
+  const sampleSize = parseInt(document.getElementById('mSample').value)||null;
+  const supplierId = document.getElementById('mSupplier').value||null;
+  if (!partId) return alert('Select a part');
+  try {
+    const data = await api('POST', '/inspections', {part_id: partId, inspection_type: type, lot_size: lotSize, sample_size: sampleSize, supplier_id: supplierId});
+    closeModal();
+    navigate('inspect-execute', data.inspection.id);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openNewCPModal() {
+  openModal('New Control Plan', `
+    <div class="form-group"><label>Part</label>
+      <select id="cpPart" class="form-control"><option>Loading...</option></select></div>
+    <div class="form-group"><label>Inspection Type</label>
+      <select id="cpType" class="form-control">
+        <option value="incoming">Incoming</option><option value="inprocess">In-Process</option>
+        <option value="preshipment">Pre-Shipment</option><option value="final">Final</option>
+      </select></div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="createCP()">Create</button>
+  `);
+  loadModalParts();
+}
+
+async function createCP() {
+  const partId = document.getElementById('cpPart').value;
+  const type = document.getElementById('cpType').value;
+  if (!partId) return alert('Select a part');
+  try {
+    const data = await api('POST', '/control-plans', {part_id: partId, inspection_type: type});
+    closeModal();
+    navigate('cp-detail', data.control_plan.id);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openAddCharModal() {
+  openModal('Add Characteristic', `
+    <div class="form-group"><label>Name</label><input type="text" id="cName" class="form-control" placeholder="Outer Diameter"></div>
+    <div class="form-group"><label>Type</label>
+      <select id="cType" class="form-control">
+        <option value="variable">Variable (measured value)</option>
+        <option value="attribute">Attribute (pass/fail)</option>
+      </select></div>
+    <div class="form-row col-3">
+      <div class="form-group"><label>Nominal</label><input type="number" id="cNom" class="form-control" step="0.001"></div>
+      <div class="form-group"><label>LSL</label><input type="number" id="cLSL" class="form-control" step="0.001"></div>
+      <div class="form-group"><label>USL</label><input type="number" id="cUSL" class="form-control" step="0.001"></div>
+    </div>
+    <div class="form-row col-2">
+      <div class="form-group"><label>Unit</label><input type="text" id="cUnit" class="form-control" placeholder="mm, in, °F..."></div>
+      <div class="form-group"><label>Critical?</label>
+        <select id="cCrit" class="form-control"><option value="false">No</option><option value="true">Yes - Critical</option></select></div>
+    </div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="addCharacteristic()">Add</button>
+  `);
+}
+
+async function addCharacteristic() {
+  if (!appState.currentCP) return;
+  const name = document.getElementById('cName').value.trim();
+  if (!name) return alert('Name required');
+  try {
+    await api('POST', `/control-plans/${appState.currentCP}/characteristics`, {
+      name,
+      char_type: document.getElementById('cType').value,
+      nominal: parseFloat(document.getElementById('cNom').value)||null,
+      lsl: parseFloat(document.getElementById('cLSL').value)||null,
+      usl: parseFloat(document.getElementById('cUSL').value)||null,
+      unit: document.getElementById('cUnit').value||null,
+      critical: document.getElementById('cCrit').value === 'true'
+    });
+    closeModal();
+    loadCPDetail(appState.currentCP);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openNewNCRModal() {
+  openModal('New NCR', `
+    <div class="form-group"><label>Part</label>
+      <select id="ncrPart" class="form-control"><option>Loading...</option></select></div>
+    <div class="form-group"><label>Severity</label>
+      <select id="ncrSev" class="form-control">
+        <option value="minor">Minor</option><option value="major">Major</option><option value="critical">Critical</option>
+      </select></div>
+    <div class="form-group"><label>Description</label>
+      <textarea id="ncrDesc" class="form-control" rows="4" placeholder="Describe the non-conformance..."></textarea></div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="createNCR()">Create NCR</button>
+  `);
+  loadModalParts();
+}
+
+async function createNCR() {
+  const partId = document.getElementById('ncrPart').value;
+  const sev = document.getElementById('ncrSev').value;
+  const desc = document.getElementById('ncrDesc').value;
+  if (!partId) return alert('Select a part');
+  try {
+    const data = await api('POST', '/ncrs', {part_id: partId, severity: sev, description: desc});
+    closeModal();
+    navigate('ncr-detail', data.ncr.id);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function createCAPAFromNCR(ncrId) {
+  try {
+    const data = await api('POST', '/capas', {ncr_id: ncrId});
+    navigate('capa-detail', data.capa.id);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openNewPartModal() {
+  openModal('New Part', `
+    <div class="form-group"><label>Part Number</label><input type="text" id="pNum" class="form-control" placeholder="PN-12345"></div>
+    <div class="form-group"><label>Description</label><input type="text" id="pDesc" class="form-control"></div>
+    <div class="form-group"><label>Revision</label><input type="text" id="pRev" class="form-control" placeholder="A"></div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="createPart()">Create Part</button>
+  `);
+}
+
+async function createPart() {
+  const partNumber = document.getElementById('pNum').value.trim();
+  if (!partNumber) return alert('Part number required');
+  try {
+    await api('POST', '/parts', {
+      part_number: partNumber,
+      description: document.getElementById('pDesc').value,
+      revision: document.getElementById('pRev').value||'A'
+    });
+    closeModal();
+    loadParts();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openNewSupplierModal() {
+  openModal('New Supplier', `
+    <div class="form-group"><label>Supplier Name</label><input type="text" id="sName" class="form-control"></div>
+    <div class="form-group"><label>Supplier Code</label><input type="text" id="sCode" class="form-control" placeholder="SUP-001"></div>
+    <div class="form-group"><label>Contact Email</label><input type="email" id="sEmail" class="form-control"></div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="createSupplier()">Create</button>
+  `);
+}
+
+async function createSupplier() {
+  const name = document.getElementById('sName').value.trim();
+  if (!name) return alert('Name required');
+  try {
+    await api('POST', '/suppliers', {name, code: document.getElementById('sCode').value, contact_email: document.getElementById('sEmail').value});
+    closeModal();
+    loadSuppliers();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function openNewGaugeModal() {
+  openModal('New Gauge', `
+    <div class="form-group"><label>Gauge Name</label><input type="text" id="gName" class="form-control" placeholder="Micrometer #3"></div>
+    <div class="form-group"><label>Type</label><input type="text" id="gType" class="form-control" placeholder="Micrometer, Caliper, CMM..."></div>
+    <div class="form-group"><label>Serial Number</label><input type="text" id="gSerial" class="form-control"></div>
+    <div class="form-group"><label>Calibration Due Date</label><input type="date" id="gCalDue" class="form-control"></div>
+  `,`
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="createGauge()">Add Gauge</button>
+  `);
+}
+
+async function createGauge() {
+  const name = document.getElementById('gName').value.trim();
+  if (!name) return alert('Name required');
+  try {
+    await api('POST', '/gauges', {
+      name,
+      type: document.getElementById('gType').value,
+      serial_number: document.getElementById('gSerial').value,
+      calibration_due: document.getElementById('gCalDue').value||null,
+      status: 'current'
+    });
+    closeModal();
+    loadGauges();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ===================== HELPERS =====================
+function fmtDate(str) {
+  if (!str) return '-';
+  return new Date(str).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function statusBadge(status) {
+  const map = {
+    open:'badge-warning',in_progress:'badge-blue',complete:'badge-success',
+    cancelled:'badge-gray',on_hold:'badge-warning',draft:'badge-gray',
+    active:'badge-success',superseded:'badge-gray',closed:'badge-gray',
+    under_review:'badge-blue',dispositioned:'badge-blue',pending_verification:'badge-warning'
+  };
+  return `<span class="badge ${map[status]||'badge-gray'}">${(status||'').replace(/_/g,' ')}</span>`;
+}
+
+function resultBadge(result, status) {
+  if (!result) return statusBadge(status);
+  const map = {pass:'badge-success', fail:'badge-danger', conditional_pass:'badge-warning'};
+  return `<span class="badge ${map[result]||'badge-gray'}">${result.replace(/_/g,' ')}</span>`;
+}
+
+function severityBadge(sev) {
+  const map = {critical:'badge-danger', major:'badge-warning', minor:'badge-gray'};
+  return `<span class="badge ${map[sev]||'badge-gray'}">${sev||'-'}</span>`;
+}
+
+function parseStatusBadge(status) {
+  const map = {pending:'badge-gray',processing:'badge-blue',complete:'badge-success',failed:'badge-danger',skipped:'badge-gray'};
+  return `<span class="badge ${map[status]||'badge-gray'}">${status||'-'}</span>`;
+}
+
+function showError(containerId, msg) {
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = `<div class="alert alert-danger" style="margin:16px">${msg}</div>`;
+}
+
+// Close modal on overlay click
+document.getElementById('genericModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===================== BOOT =====================
+if (token) bootApp();
+</script>
+</body>
+</html>

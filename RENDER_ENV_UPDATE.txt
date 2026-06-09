@@ -1,0 +1,45 @@
+RENDER ENVIRONMENT VARIABLE — ADD THIS
+=======================================
+
+In your Render dashboard → Quality OpsLok server service → Environment:
+
+Add this new variable:
+
+  ANTHROPIC_API_KEY = <your Anthropic API key>
+  (get it from: console.anthropic.com → API Keys)
+
+This is required for the AI document parsing feature (Documents → AI Parse).
+All other existing env vars (DATABASE_URL, JWT_SECRET, CLIENT_URL, NODE_ENV) stay the same.
+
+DEPLOY STEPS AFTER PUSHING
+============================
+1. cd "C:\Users\gmlor\Documents\Claude\Projects\Quality OpsLok"
+2. git add -A
+3. git commit -m "Phase 2: measurement-based inspections, control plans, AI doc parsing, gauges, suppliers, CAPAs"
+4. git push origin main
+5. In Render: add ANTHROPIC_API_KEY env var → Manual Deploy (or wait for auto-deploy)
+6. Watch logs — on first boot, database.js will run initSchema() and add all new tables automatically
+
+NEW FEATURES IN THIS DEPLOY
+=============================
+Server (server/):
+  - routes/parts.js             — Parts master
+  - routes/control-plans.js     — Control plans + characteristics
+  - routes/documents.js         — File upload + async AI parsing
+  - routes/inspection-orders.js — Measurement-based inspections + AQL sampling + auto-NCR
+  - routes/suppliers.js         — Suppliers with computed scorecard from readings
+  - routes/gauges.js            — Gauge calibration tracking
+  - routes/capas.js             — 5-Why CAPAs
+  - services/ai-parser.js       — Claude AI document extraction
+
+Client (client/src/pages/):
+  - InspectionOrders.jsx        — Create/list measurement-based inspection orders
+  - InspectionExecute.jsx       — Execute inspection: per-characteristic measurement input
+                                   with real-time green/red feedback, deviation display
+  - ControlPlans.jsx            — Control plan list + approve workflow
+  - ControlPlanDetail.jsx       — Add/manage characteristics (nominal/USL/LSL)
+  - Documents.jsx               — Upload documents for AI parsing
+  - ExtractionReview.jsx        — Review AI-extracted characteristics, approve to control plan
+  - Parts.jsx                   — Parts master
+  - Suppliers.jsx               — Supplier scorecard from real measurements
+  - Gauges.jsx                  — Gauge calibration status + overdue alerts

@@ -70,11 +70,15 @@ function ChangePasswordModal({ onClose }) {
 }
 
 const navItems = [
-  { to: '/dashboard',   label: 'Dashboard',   icon: '▦' },
-  { to: '/inspections', label: 'Inspections',  icon: '◫' },
-  { to: '/templates',   label: 'Templates',    icon: '⊞' },
-  { to: '/ncrs',        label: 'NCRs',         icon: '◎' },
-  { to: '/team',        label: 'Team',         icon: '◉' },
+  { to: '/dashboard',          label: 'Dashboard',        icon: '▦', section: null },
+  { to: '/inspection-orders',  label: 'Inspections',      icon: '🔍', section: 'Quality' },
+  { to: '/control-plans',      label: 'Control Plans',    icon: '📋', section: 'Quality' },
+  { to: '/documents',          label: 'AI Doc Parse',     icon: '📄', section: 'Quality' },
+  { to: '/ncrs',               label: 'NCRs',             icon: '⚠️',  section: 'Events' },
+  { to: '/parts',              label: 'Parts',            icon: '⚙️',  section: 'Masters' },
+  { to: '/suppliers',          label: 'Suppliers',        icon: '🏭', section: 'Masters' },
+  { to: '/gauges',             label: 'Gauges',           icon: '📏', section: 'Masters' },
+  { to: '/team',               label: 'Team',             icon: '◉',  section: 'Settings' },
 ];
 
 export default function Layout() {
@@ -184,8 +188,17 @@ export default function Layout() {
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '8px 6px', overflowY: 'auto' }}>
-          {navItems.map(item => (
-            <NavLink key={item.to} to={item.to} style={({ isActive }) => ({
+          {navItems.map((item, idx) => {
+            const prevSection = idx > 0 ? navItems[idx - 1].section : undefined;
+            const showSection = !collapsed && item.section && item.section !== prevSection;
+            return (
+              <React.Fragment key={item.to}>
+                {showSection && (
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#b0afad', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '10px 10px 3px', whiteSpace: 'nowrap' }}>
+                    {item.section}
+                  </div>
+                )}
+                <NavLink to={item.to} style={({ isActive }) => ({
               display: 'flex', alignItems: 'center',
               justifyContent: collapsed ? 'center' : 'flex-start',
               gap: collapsed ? 0 : 10,
@@ -201,7 +214,9 @@ export default function Layout() {
               <span style={{ fontSize: 17, flexShrink: 0 }} title={collapsed ? item.label : ''}>{item.icon}</span>
               {!collapsed && item.label}
             </NavLink>
-          ))}
+              </React.Fragment>
+            );
+          })}
 
           {/* Super-admin link */}
           {user?.email?.toLowerCase() === 'glorang@overtureairquality.com' && (
