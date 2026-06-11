@@ -103,7 +103,7 @@ export default function FMEABuilder() {
       </div>
 
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 1100 }}>
+        <table style={{ borderCollapse: 'collapse', fontSize: 12, tableLayout: 'auto' }}>
           <thead>
             <tr style={{ background: '#f0f4f8', borderBottom: '2px solid #e5e5e0' }}>
               {['Process Step','Failure Mode','Effect of Failure','S','Potential Cause','O','Current Controls','D','RPN','Recommended Action','Owner','Target Date','Done','New S','New O','New D','New RPN',''].map((h, i) => (
@@ -117,18 +117,18 @@ export default function FMEABuilder() {
               const newRpn = (row.new_sev || row.severity) * (row.new_occ || row.occurrence) * (row.new_det || row.detection);
               return (
                 <tr key={row.id} style={{ background: row.completed ? '#f0fdf4' : 'transparent' }}>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 100 }} value={row.process_step} onChange={e => update(row.id, 'process_step', e.target.value)} placeholder="Step…" /></td>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 110 }} value={row.failure_mode} onChange={e => update(row.id, 'failure_mode', e.target.value)} placeholder="Mode…" /></td>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 100 }} value={row.effect} onChange={e => update(row.id, 'effect', e.target.value)} placeholder="Effect…" /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 96 }} value={row.process_step} onChange={e => update(row.id, 'process_step', e.target.value)} placeholder="Step…" /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 100 }} value={row.failure_mode} onChange={e => update(row.id, 'failure_mode', e.target.value)} placeholder="Mode…" /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 90 }} value={row.effect} onChange={e => update(row.id, 'effect', e.target.value)} placeholder="Effect…" /></td>
                   <td style={cellStyle}><NumSelect value={row.severity} onChange={v => update(row.id, 'severity', v)} /></td>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 100 }} value={row.cause} onChange={e => update(row.id, 'cause', e.target.value)} placeholder="Cause…" /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 90 }} value={row.cause} onChange={e => update(row.id, 'cause', e.target.value)} placeholder="Cause…" /></td>
                   <td style={cellStyle}><NumSelect value={row.occurrence} onChange={v => update(row.id, 'occurrence', v)} /></td>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 100 }} value={row.current_controls} onChange={e => update(row.id, 'current_controls', e.target.value)} placeholder="Controls…" /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 90 }} value={row.current_controls} onChange={e => update(row.id, 'current_controls', e.target.value)} placeholder="Controls…" /></td>
                   <td style={cellStyle}><NumSelect value={row.detection} onChange={v => update(row.id, 'detection', v)} /></td>
-                  <td style={cellStyle}><RpnBadge rpn={rpn} /></td>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 120 }} value={row.action} onChange={e => update(row.id, 'action', e.target.value)} placeholder="Action…" /></td>
-                  <td style={cellStyle}><input style={{ ...inputStyle, minWidth: 80 }} value={row.owner} onChange={e => update(row.id, 'owner', e.target.value)} placeholder="Owner…" /></td>
-                  <td style={cellStyle}><input type="date" style={{ ...inputStyle, minWidth: 100 }} value={row.target_date} onChange={e => update(row.id, 'target_date', e.target.value)} /></td>
+                  <td style={{ ...cellStyle, textAlign: 'center' }}><RpnBadge rpn={rpn} /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 110 }} value={row.action} onChange={e => update(row.id, 'action', e.target.value)} placeholder="Action…" /></td>
+                  <td style={cellStyle}><input style={{ ...inputStyle, width: 72 }} value={row.owner} onChange={e => update(row.id, 'owner', e.target.value)} placeholder="Owner…" /></td>
+                  <td style={cellStyle}><input type="date" style={{ ...inputStyle, width: 110 }} value={row.target_date} onChange={e => update(row.id, 'target_date', e.target.value)} /></td>
                   <td style={{ ...cellStyle, textAlign: 'center' }}>
                     <input type="checkbox" checked={row.completed} onChange={e => update(row.id, 'completed', e.target.checked)} />
                   </td>

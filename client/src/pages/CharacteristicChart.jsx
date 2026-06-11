@@ -63,7 +63,7 @@ export default function CharacteristicChart() {
 
       {/* Quick stats */}
       {stats ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 10, marginBottom: 24 }}>
           <StatCard label="n" value={stats.n} />
           <StatCard label="Mean" value={Number(stats.mean).toFixed(4)} sub={char.unit} />
           <StatCard label="Std Dev (s)" value={Number(stats.std_dev).toFixed(4)} />
@@ -107,11 +107,11 @@ export default function CharacteristicChart() {
               <ReferenceLine y={controlChart.lcl} stroke="#dc2626" strokeDasharray="5 3" label={{ value: `LCL: ${Number(controlChart.lcl).toFixed(4)}`, fill: '#dc2626', fontSize: 10 }} />
               {char.usl != null && <ReferenceLine y={Number(char.usl)} stroke="#f97316" strokeWidth={1.5} label={{ value: `USL`, fill: '#f97316', fontSize: 10 }} />}
               {char.lsl != null && <ReferenceLine y={Number(char.lsl)} stroke="#f97316" strokeWidth={1.5} label={{ value: `LSL`, fill: '#f97316', fontSize: 10 }} />}
-              <Line type="linear" dataKey="val" stroke="#185FA5" strokeWidth={1.5} dot={p => (
-                <circle key={p.key} cx={p.cx} cy={p.cy} r={4}
-                  fill={p.payload.out_of_control ? '#dc2626' : '#185FA5'}
-                  stroke={p.payload.out_of_control ? '#dc2626' : '#185FA5'} />
-              )} />
+              <Line type="linear" dataKey="val" stroke="#185FA5" strokeWidth={1.5}
+                dot={(p) => <circle key={`dot-${p.index}`} cx={p.cx} cy={p.cy} r={4}
+                  fill={p.payload?.out_of_control ? '#dc2626' : '#185FA5'}
+                  stroke="none" />}
+              />
             </ComposedChart>
           </ResponsiveContainer>
 
@@ -125,7 +125,7 @@ export default function CharacteristicChart() {
               <Tooltip formatter={v => v?.toFixed(4)} />
               <ReferenceLine y={controlChart.ucl_mr} stroke="#dc2626" strokeDasharray="5 3" label={{ value: `UCL: ${Number(controlChart.ucl_mr).toFixed(4)}`, fill: '#dc2626', fontSize: 10 }} />
               <ReferenceLine y={controlChart.mr_bar} stroke="#185FA5" strokeDasharray="4 2" label={{ value: `MR̄: ${Number(controlChart.mr_bar).toFixed(4)}`, fill: '#185FA5', fontSize: 10, position: 'insideTopLeft' }} />
-              <Line type="linear" dataKey="mr" stroke="#7c3aed" strokeWidth={1.5} dot={{ r: 3, fill: '#7c3aed' }} />
+              <Line type="linear" dataKey="mr" stroke="#7c3aed" strokeWidth={1.5} dot={{ r: 3, fill: '#7c3aed', stroke: 'none' }} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>

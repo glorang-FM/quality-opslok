@@ -64,9 +64,8 @@ export default function XbarRChart() {
               <ReferenceLine y={stats.lcl_xbar} stroke="#dc2626" strokeDasharray="5 3"
                 label={{ value: `LCL: ${Number(stats.lcl_xbar).toFixed(4)}`, fill: '#dc2626', fontSize: 10 }} />
               <Line type="linear" dataKey="xbar" stroke="#185FA5" strokeWidth={1.5}
-                dot={p => <circle key={p.key} cx={p.cx} cy={p.cy} r={4}
-                  fill={p.payload.out_of_control_x ? '#dc2626' : '#185FA5'}
-                  stroke={p.payload.out_of_control_x ? '#dc2626' : '#185FA5'} />}
+                dot={(p) => <circle key={`xdot-${p.index}`} cx={p.cx} cy={p.cy} r={4}
+                  fill={p.payload?.out_of_control_x ? '#dc2626' : '#185FA5'} stroke="none" />}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -88,9 +87,8 @@ export default function XbarRChart() {
                   label={{ value: `LCL: ${Number(stats.lcl_r).toFixed(4)}`, fill: '#dc2626', fontSize: 10 }} />
               )}
               <Line type="linear" dataKey="r" stroke="#7c3aed" strokeWidth={1.5}
-                dot={p => <circle key={p.key} cx={p.cx} cy={p.cy} r={4}
-                  fill={p.payload.out_of_control_r ? '#dc2626' : '#7c3aed'}
-                  stroke={p.payload.out_of_control_r ? '#dc2626' : '#7c3aed'} />}
+                dot={(p) => <circle key={`rdot-${p.index}`} cx={p.cx} cy={p.cy} r={4}
+                  fill={p.payload?.out_of_control_r ? '#dc2626' : '#7c3aed'} stroke="none" />}
               />
             </ComposedChart>
           </ResponsiveContainer>

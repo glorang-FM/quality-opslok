@@ -134,12 +134,14 @@ export default function QualityTools() {
     setSaved(prev => prev.filter(x => x.id !== id));
   };
 
-  const filtered = filter ? saved.filter(s => s.type === filter) : saved;
-
-  const openSaved = (item) => {
-    const routes = { fishbone: `/quality-tools/fishbone`, fmea: `/quality-tools/fmea`, check_sheet: `/quality-tools/check-sheet`, gauge_rr: `/quality-tools/gauge-rr` };
-    navigate(`/quality-tools/view/${item.id}`);
+  const EDIT_ROUTES = {
+    fishbone:   '/quality-tools/fishbone',
+    fmea:       '/quality-tools/fmea',
+    check_sheet:'/quality-tools/check-sheet',
+    gauge_rr:   '/quality-tools/gauge-rr',
   };
+
+  const filtered = filter ? saved.filter(s => s.type === filter) : saved;
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -210,21 +212,31 @@ export default function QualityTools() {
             {filtered.map(item => (
               <div key={item.id} style={{ border: '1px solid #e5e5e0', borderRadius: 10, padding: '14px 16px', background: '#fff' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <span>{TYPE_ICONS[item.type] || '🔧'}</span>
-                      <span style={{ fontSize: 10, background: '#f0f0ee', color: '#5a5a57', padding: '2px 7px', borderRadius: 10 }}>{TYPE_LABELS[item.type] || item.type}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <span style={{ fontSize: 16 }}>{TYPE_ICONS[item.type] || '🔧'}</span>
+                      <span style={{ fontSize: 10, background: '#f0f0ee', color: '#5a5a57', padding: '2px 7px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                        {TYPE_LABELS[item.type] || item.type}
+                      </span>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#2a2a28', marginBottom: 4 }}>{item.title}</div>
-                    <div style={{ fontSize: 11, color: '#b0afad' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#2a2a28', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.title}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#b0afad', marginBottom: 8 }}>
                       {item.created_by_name && <span>By {item.created_by_name} · </span>}
                       {new Date(item.updated_at).toLocaleDateString()}
                     </div>
-                    {item.ncr_id && <div style={{ fontSize: 10, color: '#d97706', marginTop: 4 }}>Linked to NCR #{item.ncr_id}</div>}
-                    {item.capa_id && <div style={{ fontSize: 10, color: '#7c3aed', marginTop: 2 }}>Linked to CAPA #{item.capa_id}</div>}
+                    {item.ncr_id && <div style={{ fontSize: 10, color: '#d97706', marginBottom: 2 }}>🔗 NCR #{item.ncr_id}</div>}
+                    {item.capa_id && <div style={{ fontSize: 10, color: '#7c3aed', marginBottom: 2 }}>🔗 CAPA #{item.capa_id}</div>}
+                    {EDIT_ROUTES[item.type] && (
+                      <Link to={EDIT_ROUTES[item.type]} style={{ fontSize: 11, color: '#185FA5', textDecoration: 'none', fontWeight: 500 }}>
+                        Open Tool →
+                      </Link>
+                    )}
                   </div>
                   <button onClick={() => deleteTool(item.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: 14, flexShrink: 0, padding: 2 }}>✕</button>
+                    title="Delete"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: 15, flexShrink: 0, padding: '2px 4px', lineHeight: 1 }}>✕</button>
                 </div>
               </div>
             ))}

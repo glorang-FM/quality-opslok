@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api';
 
@@ -11,57 +11,150 @@ const BONES = [
   { key: 'environment', label: 'Environment', color: '#0891b2' },
 ];
 
-function FishboneSVG({ effect, bones }) {
-  const W = 800, H = 420;
-  const CX = 680, CY = H / 2;
-  const headW = 80, headH = 40;
+// Word-wrap effect text into lines of ≤maxLen chars, respecting word boundaries
+function wrapText(text, maxLen) {
+  if (!text) return ['Effect'];
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const candidate = cur ? cur + ' ' + w : w;
+    if (candidate.length <= maxLen) {
+      cur = candidate;
+    } else {
+      if (cur) lines.push(cur);
+      cur = w.slice(0, maxLen);
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 3);
+}
 
-  const boneLines = [
-    { key: 'methods',     x1: 160, y1: 60,  x2: 380, y2: CY },
-    { key: 'machines',    x1: 350, y1: 60,  x2: 490, y2: CY },
-    { key: 'materials',   x1: 540, y1: 60,  x2: 590, y2: CY },
-    { key: 'manpower',    x1: 160, y1: H - 60, x2: 380, y2: CY },
-    { key: 'measurement', x1: 350, y1: H - 60, x2: 490, y2: CY },
-    { key: 'environment', x1: 540, y1: H - 60, x2: 590, y2: CY },
+function FishboneSVG({ effect, bones }) {
+  // Wider canvas so the head box never clips
+  const W = 980, H = 460;
+  const CY = H / 2; // 230
+  const SPINE_X0 = 50;
+  const SPINE_X1 = 820; // spine ends here; head box starts
+  const HEAD_W = 150, HEAD_H = 58;
+
+  // 3 evenly-spaced attachment points along the spine
+  const ATTACH = [230, 430, 630];
+
+  // Each bone: start corner (lx, ly) → spine attachment (ax, CY)
+  const boneConfig = [
+    { key: 'methods',     color: '#185FA5', label: 'Methods',     top: true,  ax: ATTACH[0], lx: 55,  ly: 58  },
+    { key: 'machines',    color: '#7c3aed', label: 'Machines',    top: true,  ax: ATTACH[1], lx: 280, ly: 58  },
+    { key: 'materials',   color: '#dc2626', label: 'Materials',   top: true,  ax: ATTACH[2], lx: 510, ly: 58  },
+    { key: 'manpower',    color: '#d97706', label: 'Manpower',    top: false, ax: ATTACH[0], lx: 55,  ly: H - 58 },
+    { key: 'measurement', color: '#16a34a', label: 'Measurement', top: false, ax: ATTACH[1], lx: 280, ly: H - 58 },
+    { key: 'environment', color: '#0891b2', label: 'Environment', top: false, ax: ATTACH[2], lx: 510, ly: H - 58 },
   ];
 
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', border: '1px solid #e5e5e0', borderRadius: 10, background: '#fff', marginBottom: 16 }}>
-      {/* Spine */}
-      <line x1={80} y1={CY} x2={CX - headW} y2={CY} stroke="#2a2a28" strokeWidth={2.5} />
-      {/* Head (effect box) */}
-      <rect x={CX - headW} y={CY - headH / 2} width={headW} height={headH} rx={6} fill="#185FA5" />
-      <text x={CX - headW / 2} y={CY + 5} textAnchor="middle" fill="#fff" fontSize={11} fontWeight="600"
-        style={{ fontFamily: 'sans-serif' }}>
-        {effect || 'Effect'}
-      </text>
+  const effectLines = wrapText(effect, 14);
+  const lineH = 15;
 
-      {boneLines.map((b, i) => {
-        const bone = BONES.find(x => x.key === b.key);
-        const isTop = i < 3;
-        const causes = bones[b.key] || [];
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: '100%', border: '1px solid #e5e5e0', borderRadius: 10, background: '#fafafa', marginBottom: 16, display: 'block' }}
+    >
+      {/* Spine */}
+      <line x1={SPINE_X0} y1={CY} x2={SPINE_X1} y2={CY} stroke="#2a2a28" strokeWidth={2.5} />
+      {/* Arrowhead */}
+      <polygon points={`${SPINE_X1},${CY} ${SPINE_X1 - 14},${CY - 7} ${SPINE_X1 - 14},${CY + 7}`} fill="#2a2a28" />
+
+      {/* Effect (head) box — wide enough for wrapped text */}
+      <rect x={SPINE_X1} y={CY - HEAD_H / 2} width={HEAD_W} height={HEAD_H} rx={8} fill="#185FA5" />
+      {effectLines.map((line, i) => {
+        const totalH = effectLines.length * lineH;
+        const startY = CY - totalH / 2 + lineH / 2;
         return (
-          <g key={b.key}>
-            <line x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2} stroke={bone.color} strokeWidth={1.5} />
-            <text x={b.x1} y={isTop ? b.y1 - 8 : b.y1 + 16} textAnchor="middle" fontSize={11} fontWeight="600"
-              fill={bone.color} style={{ fontFamily: 'sans-serif' }}>
-              {bone.label}
+          <text
+            key={i}
+            x={SPINE_X1 + HEAD_W / 2}
+            y={startY + i * lineH}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="white"
+            fontSize={11}
+            fontWeight="700"
+            fontFamily="system-ui, sans-serif"
+          >
+            {line}
+          </text>
+        );
+      })}
+
+      {/* Bones */}
+      {boneConfig.map(({ key, color, label, top, ax, lx, ly }) => {
+        const causes = (bones[key] || []).slice(0, 3);
+        const dx = ax - lx;
+        const dy = CY - ly; // negative for top bones (going downward to spine), positive for bottom
+
+        return (
+          <g key={key}>
+            {/* Main diagonal bone */}
+            <line x1={lx} y1={ly} x2={ax} y2={CY} stroke={color} strokeWidth={2} />
+
+            {/* Category label — above bone tip for top, below for bottom */}
+            <text
+              x={lx}
+              y={top ? ly - 10 : ly + 20}
+              textAnchor="middle"
+              fontSize={12}
+              fontWeight="700"
+              fill={color}
+              fontFamily="system-ui, sans-serif"
+            >
+              {label}
             </text>
-            {causes.slice(0, 4).map((cause, ci) => {
-              const t = 0.35 + ci * 0.12;
-              const mx = b.x1 + (b.x2 - b.x1) * t;
-              const my = b.y1 + (b.y2 - b.y1) * t;
-              const offset = isTop ? -18 : 18;
+
+            {/* Sub-causes: spaced at t=0.2, 0.5, 0.8 along the bone.
+                Each cause gets a vertical tick + label above (top) or below (bottom).
+                Because each t gives a different y on the angled bone, labels stack
+                diagonally and never overlap each other. */}
+            {causes.map((cause, ci) => {
+              const t = 0.2 + ci * 0.3;
+              const bx = lx + dx * t;
+              const by = ly + dy * t;
+              const TICK = 28; // length of the perpendicular tick line
+              const ey = top ? by - TICK : by + TICK;
+              const short = cause.length > 15 ? cause.slice(0, 14) + '…' : cause;
               return (
                 <g key={ci}>
-                  <line x1={mx} y1={my} x2={mx} y2={my + offset} stroke={bone.color} strokeWidth={1} strokeDasharray="3 2" />
-                  <text x={mx} y={my + offset + (isTop ? -3 : 12)} textAnchor="middle" fontSize={9}
-                    fill="#5a5a57" style={{ fontFamily: 'sans-serif' }}>
-                    {cause.length > 14 ? cause.slice(0, 13) + '…' : cause}
+                  <line
+                    x1={bx} y1={by} x2={bx} y2={ey}
+                    stroke={color} strokeWidth={1} strokeDasharray="3 2"
+                  />
+                  <text
+                    x={bx}
+                    y={top ? ey - 4 : ey + 12}
+                    textAnchor="middle"
+                    fontSize={9.5}
+                    fill="#3a3a38"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {short}
                   </text>
                 </g>
               );
             })}
+
+            {/* "+N more" badge if there are more than 3 causes */}
+            {(bones[key] || []).length > 3 && (
+              <text
+                x={ax + (top ? -6 : -6)}
+                y={top ? CY - 10 : CY + 18}
+                textAnchor="middle"
+                fontSize={8}
+                fill={color}
+                fontFamily="system-ui, sans-serif"
+              >
+                +{(bones[key] || []).length - 3} more
+              </text>
+            )}
           </g>
         );
       })}
