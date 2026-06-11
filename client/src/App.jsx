@@ -21,6 +21,15 @@ import Documents from './pages/Documents';
 import ExtractionReview from './pages/ExtractionReview';
 import Suppliers from './pages/Suppliers';
 import Gauges from './pages/Gauges';
+import QualityTools from './pages/QualityTools';
+import CharacteristicChart from './pages/CharacteristicChart';
+import XbarRChart from './pages/XbarRChart';
+import ParetoAnalysis from './pages/ParetoAnalysis';
+import ScatterPlot from './pages/ScatterPlot';
+import FishboneBuilder from './pages/FishboneBuilder';
+import FMEABuilder from './pages/FMEABuilder';
+import CheckSheet from './pages/CheckSheet';
+import GaugeRR from './pages/GaugeRR';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -59,6 +68,17 @@ export default function App() {
             {/* Quality events */}
             <Route path="/ncrs"                         element={<NCRs />} />
             <Route path="/ncrs/:id"                     element={<NCRDetail />} />
+
+            {/* Quality tools + analytics */}
+            <Route path="/quality-tools"                element={<QualityTools />} />
+            <Route path="/quality-tools/pareto"         element={<ParetoAnalysis />} />
+            <Route path="/quality-tools/scatter"        element={<ScatterPlot />} />
+            <Route path="/quality-tools/chart/:id"      element={<CharacteristicChart />} />
+            <Route path="/quality-tools/xbar-r/:id"     element={<XbarRChart />} />
+            <Route path="/quality-tools/fishbone"       element={<FishboneBuilder />} />
+            <Route path="/quality-tools/fmea"           element={<FMEABuilder />} />
+            <Route path="/quality-tools/check-sheet"    element={<CheckSheet />} />
+            <Route path="/quality-tools/gauge-rr"       element={<GaugeRR />} />
 
             {/* Masters */}
             <Route path="/parts"                        element={<Parts />} />

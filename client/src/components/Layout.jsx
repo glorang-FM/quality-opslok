@@ -74,6 +74,7 @@ const navItems = [
   { to: '/inspection-orders',  label: 'Inspections',      icon: '🔍', section: 'Quality' },
   { to: '/control-plans',      label: 'Control Plans',    icon: '📋', section: 'Quality' },
   { to: '/documents',          label: 'AI Doc Parse',     icon: '📄', section: 'Quality' },
+  { to: '/quality-tools',      label: 'Quality Tools',    icon: '🔧', section: 'Quality' },
   { to: '/ncrs',               label: 'NCRs',             icon: '⚠️',  section: 'Events' },
   { to: '/parts',              label: 'Parts',            icon: '⚙️',  section: 'Masters' },
   { to: '/suppliers',          label: 'Suppliers',        icon: '🏭', section: 'Masters' },

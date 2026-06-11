@@ -367,6 +367,23 @@ async function initSchema() {
     )
   `);
 
+  // ── Quality tools (fishbone, FMEA, check sheets, gauge R&R, flowcharts) ───
+  await db.run(`
+    CREATE TABLE IF NOT EXISTS quality_tools (
+      id         SERIAL PRIMARY KEY,
+      org_id     INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+      type       TEXT NOT NULL
+                   CHECK (type IN ('fishbone','fmea','check_sheet','gauge_rr','flowchart')),
+      title      TEXT NOT NULL,
+      data       TEXT NOT NULL DEFAULT '{}',
+      ncr_id     INTEGER REFERENCES ncrs(id) ON DELETE SET NULL,
+      capa_id    INTEGER REFERENCES capas(id) ON DELETE SET NULL,
+      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
   // Seed: if no orgs exist, create default org + admin
   const orgCheck = await db.one('SELECT COUNT(*) as count FROM organizations');
   if (!orgCheck || parseInt(orgCheck.count) === 0) {

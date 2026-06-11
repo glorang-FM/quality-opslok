@@ -40,6 +40,8 @@ async function start() {
   app.use('/api/documents',          requireSubscription, require('./routes/documents'));
   app.use('/api/inspection-orders',  requireSubscription, require('./routes/inspection-orders'));
   app.use('/api/capas',              requireSubscription, require('./routes/capas'));
+  app.use('/api/analytics',          requireSubscription, require('./routes/analytics'));
+  app.use('/api/quality-tools',      requireSubscription, require('./routes/quality-tools'));
 
   if (process.env.NODE_ENV === 'production') {
     const clientBuild = path.join(__dirname, '../client/dist');
